@@ -48,14 +48,16 @@ def generate_launch_description():
 
     ld = LaunchDescription([spawn_amrs_arg])
 
-    # Start Gazebo simulator using Ignition Gazebo (via ros_gz_sim package)
+    # Start Gazebo simulator using ros_gz_sim package
     # This replaces gazebo_ros which is Gazebo Classic and not available in Jazzy
     # The world file includes amr_0, amr_1, amr_2 models
     gazebo_cmd = ExecuteProcess(
         cmd=[
             'bash', '-c',
+            f'export GZ_VERSION=garden && ' +
             f'source /opt/ros/jazzy/setup.bash && ' +
-            f'ign gazebo -r -v 4 {world_file}'
+            f'. /opt/ros/jazzy/install/setup.bash 2>/dev/null; true && ' +
+            f'ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="-r -v 4 {world_file}"'
         ],
         output='screen'
     )

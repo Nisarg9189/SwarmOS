@@ -37,6 +37,7 @@ services:
       GAZEBO_RESOURCE_PATH: /workspace/simulation
       DISPLAY: :99
       LIBGL_ALWAYS_INDIRECT: 1
+      QT_QPA_PLATFORM: offscreen
     volumes:
       - ../simulation:/workspace/simulation:ro
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
@@ -45,7 +46,7 @@ services:
     command: bash -c "
       source /opt/ros/jazzy/setup.bash &&
       source /workspace/install/setup.bash &&
-      ros2 launch simulation warehouse.launch.py spawn_amrs:=3"
+      ros2 launch /workspace/install/simulation/share/simulation/warehouse.launch.py spawn_amrs:=3"
     healthcheck:
       test: ["CMD", "bash", "-c", "ps aux | grep -q bash"]
       interval: 10s

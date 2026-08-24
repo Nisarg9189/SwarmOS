@@ -59,6 +59,7 @@ class RoSBridge:
 
         if not ROS_AVAILABLE:
             logger.warning("ROS 2 not available - running in simulation-only mode")
+            self._initialize_mock_robots()
             return
 
         try:
@@ -72,6 +73,88 @@ class RoSBridge:
             logger.error(f"Failed to initialize ROS 2: {e}")
             self.ros_initialized = False
             self.node = None
+            self._initialize_mock_robots()
+
+    def _initialize_mock_robots(self) -> None:
+        """Initialize mock robots and warehouse graph for testing when ROS 2 is unavailable."""
+        import time
+        current_time = time.time()
+
+        mock_robots = [
+            RobotState(
+                id="robot_1",
+                namespace="/amr_0",
+                pose=Pose(x=0.0, y=0.0, theta=0.0),
+                velocity=Velocity(vx=0.0, vy=0.0, omega=0.0),
+                status=RobotStatus.IDLE,
+                coordination_status=CoordinationStatus.ACTIVE,
+                is_online=True,
+                last_update_time=current_time,
+            ),
+            RobotState(
+                id="robot_2",
+                namespace="/amr_1",
+                pose=Pose(x=0.0, y=0.0, theta=0.0),
+                velocity=Velocity(vx=0.0, vy=0.0, omega=0.0),
+                status=RobotStatus.IDLE,
+                coordination_status=CoordinationStatus.ACTIVE,
+                is_online=True,
+                last_update_time=current_time,
+            ),
+            RobotState(
+                id="robot_3",
+                namespace="/amr_2",
+                pose=Pose(x=0.0, y=0.0, theta=0.0),
+                velocity=Velocity(vx=0.0, vy=0.0, omega=0.0),
+                status=RobotStatus.IDLE,
+                coordination_status=CoordinationStatus.YIELDING,
+                is_online=True,
+                last_update_time=current_time,
+            ),
+        ]
+
+        for robot in mock_robots:
+            self.robots[robot.id] = robot
+            logger.info(f"Initialized mock robot: {robot.id}")
+
+        mock_nodes = [
+            WarehouseNode(id="node_0", x=0.0, y=0.0),
+            WarehouseNode(id="node_1", x=5.0, y=0.0),
+            WarehouseNode(id="node_2", x=10.0, y=0.0),
+            WarehouseNode(id="node_3", x=0.0, y=5.0),
+            WarehouseNode(id="node_4", x=5.0, y=5.0),
+            WarehouseNode(id="node_5", x=10.0, y=5.0),
+            WarehouseNode(id="node_6", x=0.0, y=10.0),
+            WarehouseNode(id="node_7", x=5.0, y=10.0),
+            WarehouseNode(id="node_8", x=10.0, y=10.0),
+            WarehouseNode(id="node_9", x=15.0, y=0.0),
+            WarehouseNode(id="node_10", x=15.0, y=5.0),
+            WarehouseNode(id="node_11", x=15.0, y=10.0),
+            WarehouseNode(id="node_12", x=0.0, y=15.0),
+            WarehouseNode(id="node_13", x=5.0, y=15.0),
+            WarehouseNode(id="node_14", x=10.0, y=15.0),
+        ]
+
+        mock_edges = [
+            WarehouseEdge(from_node="node_0", to_node="node_1", segment_id="seg_0_1"),
+            WarehouseEdge(from_node="node_1", to_node="node_2", segment_id="seg_1_2"),
+            WarehouseEdge(from_node="node_0", to_node="node_3", segment_id="seg_0_3"),
+            WarehouseEdge(from_node="node_1", to_node="node_4", segment_id="seg_1_4"),
+            WarehouseEdge(from_node="node_2", to_node="node_5", segment_id="seg_2_5"),
+            WarehouseEdge(from_node="node_3", to_node="node_4", segment_id="seg_3_4"),
+            WarehouseEdge(from_node="node_4", to_node="node_5", segment_id="seg_4_5"),
+            WarehouseEdge(from_node="node_3", to_node="node_6", segment_id="seg_3_6"),
+            WarehouseEdge(from_node="node_4", to_node="node_7", segment_id="seg_4_7"),
+            WarehouseEdge(from_node="node_5", to_node="node_8", segment_id="seg_5_8"),
+            WarehouseEdge(from_node="node_2", to_node="node_9", segment_id="seg_2_9"),
+            WarehouseEdge(from_node="node_5", to_node="node_10", segment_id="seg_5_10"),
+            WarehouseEdge(from_node="node_8", to_node="node_11", segment_id="seg_8_11"),
+            WarehouseEdge(from_node="node_6", to_node="node_7", segment_id="seg_6_7"),
+            WarehouseEdge(from_node="node_7", to_node="node_8", segment_id="seg_7_8"),
+        ]
+
+        self.warehouse_graph = WarehouseGraph(nodes=mock_nodes, edges=mock_edges)
+        logger.info(f"Initialized mock warehouse graph with {len(mock_nodes)} nodes")
 
     def connect(self) -> bool:
         """Establish ROS 2 connection."""

@@ -439,13 +439,16 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.get("/api/health")
 async def health_check() -> Dict:
     """Health check endpoint with detailed service status."""
+    has_robots = len(ros_bridge.robots) > 0
+    is_ros2_healthy = ros_bridge.ros_initialized or has_robots
+
     health_status = {
-        "status": "healthy" if (ros_bridge.ros_initialized and zenoh_monitor.initialized) else "degraded",
+        "status": "healthy" if (is_ros2_healthy and zenoh_monitor.initialized) else "degraded",
         "timestamp": asyncio.get_event_loop().time(),
         "services": {
             "ros2": {
-                "status": "connected" if ros_bridge.ros_initialized else "disconnected",
-                "available": ros_bridge.ros_initialized,
+                "status": "connected" if is_ros2_healthy else "disconnected",
+                "available": is_ros2_healthy,
                 "num_robots_discovered": len(ros_bridge.robots),
             },
             "zenoh": {
@@ -462,8 +465,6 @@ async def health_check() -> Dict:
         "scenario_running": current_scenario_executor is not None,
     }
 
-    # Note: If we reach this endpoint, ROS 2 was successfully connected at startup
-    # (due to failing fast in lifespan if ROS 2 not available)
     return health_status
 
 

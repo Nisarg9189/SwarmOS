@@ -25,17 +25,12 @@ class ZenohMonitor:
 
     def __init__(self, warehouse_id: str = "wh1"):
         """Initialize Zenoh monitor."""
-        if not ZENOH_AVAILABLE:
-            logger.warning("Zenoh not available - coordination monitoring disabled")
-            self.initialized = False
-            return
-
         self.warehouse_id = warehouse_id
         self.session = None
         self.subscriptions: Dict[str, Any] = {}
         self.initialized = False
 
-        # Cached state
+        # Cached state (always initialize these)
         self.robot_state: Dict[str, Dict[str, Any]] = {}  # robot_id -> latest state msg
         self.robot_intent: Dict[str, Dict[str, Any]] = {}  # robot_id -> latest intent msg
         self.robot_task: Dict[str, Dict[str, Any]] = {}  # robot_id -> latest task msg
@@ -44,6 +39,10 @@ class ZenohMonitor:
         self.on_state_updated: Optional[Callable] = None
         self.on_intent_updated: Optional[Callable] = None
         self.on_coordination_event: Optional[Callable] = None
+
+        if not ZENOH_AVAILABLE:
+            logger.warning("Zenoh not available - coordination monitoring disabled")
+            return
 
     def connect(self) -> bool:
         """Connect to Zenoh router."""

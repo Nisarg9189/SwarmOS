@@ -60,12 +60,12 @@ class TaskDispatcher:
 
         # Zenoh publishers
         self.task_events_pub = self.zenoh_session.declare_publisher(
-            '/swarm/task/events'
+            'swarm/task/events'
         )
 
         # Zenoh subscribers
         self.task_status_sub = self.zenoh_session.declare_subscriber(
-            '/swarm/agent/+/task_status'
+            'swarm/agent/+/task_status'
         )
 
         logger.info("Task Dispatcher initialized")

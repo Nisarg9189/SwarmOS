@@ -112,24 +112,24 @@ class CoordinationAgent(Node):
 
         # Zenoh subscribers
         self.peer_status_sub = self.zenoh_session.declare_subscriber(
-            f'/swarm/agent/+/status'
+            f'swarm/agent/+/status'
         )
         self.peer_intent_sub = self.zenoh_session.declare_subscriber(
-            f'/swarm/agent/+/intent'
+            f'swarm/agent/+/intent'
         )
         self.task_events_sub = self.zenoh_session.declare_subscriber(
-            f'/swarm/task/events'
+            f'swarm/task/events'
         )
 
         # Zenoh publishers
         self.status_pub = self.zenoh_session.declare_publisher(
-            f'/swarm/agent/{robot_id}/status'
+            f'swarm/agent/{robot_id}/status'
         )
         self.intent_pub = self.zenoh_session.declare_publisher(
-            f'/swarm/agent/{robot_id}/intent'
+            f'swarm/agent/{robot_id}/intent'
         )
         self.task_status_pub = self.zenoh_session.declare_publisher(
-            f'/swarm/agent/{robot_id}/task_status'
+            f'swarm/agent/{robot_id}/task_status'
         )
 
         logger.info(f"Agent {robot_id} initialized")

@@ -43,9 +43,9 @@ services:
     networks:
       - swarmos
     command: bash -c "
-      echo 'Gazebo Simulation Service - Placeholder (Gazebo package not available for Jazzy)'
       source /opt/ros/jazzy/setup.bash &&
-      sleep infinity"
+      cd /workspace/simulation &&
+      ros2 launch simulation warehouse.launch.py spawn_amrs:=3"
     healthcheck:
       test: ["CMD", "bash", "-c", "ps aux | grep -q bash"]
       interval: 10s

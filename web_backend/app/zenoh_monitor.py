@@ -23,9 +23,15 @@ logger = logging.getLogger(__name__)
 class ZenohMonitor:
     """Monitor Zenoh coordination protocol topics."""
 
-    def __init__(self, warehouse_id: str = "wh1"):
-        """Initialize Zenoh monitor."""
+    def __init__(self, warehouse_id: str = "wh1", zenoh_endpoint: str = "tcp/127.0.0.1:7447"):
+        """Initialize Zenoh monitor.
+
+        Args:
+            warehouse_id: Warehouse identifier for topic scoping
+            zenoh_endpoint: Zenoh router endpoint (default: tcp/127.0.0.1:7447 for host connection)
+        """
         self.warehouse_id = warehouse_id
+        self.zenoh_endpoint = zenoh_endpoint
         self.session = None
         self.subscriptions: Dict[str, Any] = {}
         self.initialized = False
@@ -53,18 +59,18 @@ class ZenohMonitor:
             return False
 
         try:
-            conf = zenoh.Config()
-            # Use default config which connects to local router on localhost:7447
+            # Create config with explicit endpoint (supports both localhost and remote endpoints)
+            conf = zenoh.Config.from_json5(f"{{ connect: {{ endpoints: ['{self.zenoh_endpoint}'] }} }}")
             self.session = zenoh.open(conf)
             self.initialized = True
-            logger.info("Connected to Zenoh router")
+            logger.info(f"Connected to Zenoh router at {self.zenoh_endpoint}")
 
             # Auto-discover robots by subscribing to agent status wildcard
             self._subscribe_to_agent_discovery()
 
             return True
         except Exception as e:
-            logger.error(f"Failed to connect to Zenoh: {e}")
+            logger.error(f"Failed to connect to Zenoh at {self.zenoh_endpoint}: {e}")
             self.initialized = False
             return False
 

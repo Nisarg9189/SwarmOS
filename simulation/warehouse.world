@@ -231,5 +231,128 @@
       </link>
     </model>
 
+    <!-- Robot 0 -->
+    <model name="amr_0">
+      <pose>-10 0 0.15 0 0 0</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>20</mass>
+          <inertia>
+            <ixx>0.2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.2</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+        </inertial>
+        <collision name="base_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="base_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.8 1</ambient>
+            <diffuse>0.2 0.2 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
+        <publish_link_pose>true</publish_link_pose>
+      </plugin>
+    </model>
+
+    <!-- Robot 1 -->
+    <model name="amr_1">
+      <pose>0 0 0.15 0 0 0</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>20</mass>
+          <inertia>
+            <ixx>0.2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.2</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+        </inertial>
+        <collision name="base_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="base_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.2 0.8 0.2 1</ambient>
+            <diffuse>0.2 0.9 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
+        <publish_link_pose>true</publish_link_pose>
+      </plugin>
+    </model>
+
+    <!-- Robot 2 -->
+    <model name="amr_2">
+      <pose>10 0 0.15 0 0 0</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>20</mass>
+          <inertia>
+            <ixx>0.2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.2</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+        </inertial>
+        <collision name="base_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="base_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.2 0.2 1</ambient>
+            <diffuse>0.9 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
+        <publish_link_pose>true</publish_link_pose>
+      </plugin>
+    </model>
+
   </world>
 </sdf>

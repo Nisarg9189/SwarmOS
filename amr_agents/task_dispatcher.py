@@ -41,9 +41,10 @@ class TaskDispatcher:
 
         # Zenoh setup
         try:
-            conf = zenoh.Config.from_json('{"connect":{"endpoints":["' + zenoh_endpoint + '"]}}')
-            self.zenoh_session = zenoh.open(conf)
-            logger.info(f"Connected to Zenoh at {zenoh_endpoint}")
+            # Open Zenoh session - pass None for default config with environment variables
+            # The ZENOH_CONNECT_ENDPOINTS env var should be set in docker-compose
+            self.zenoh_session = zenoh.open(None)
+            logger.info(f"Connected to Zenoh")
         except Exception as e:
             logger.error(f"Failed to connect to Zenoh: {e}")
             raise RuntimeError(f"Zenoh connection failed: {e}")

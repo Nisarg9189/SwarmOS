@@ -1,15 +1,19 @@
 FROM swarmos:base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-jazzy-gazebo-* \
-    ros-jazzy-nav2-* \
-    ros-jazzy-tf2-* \
+    ros-jazzy-tf2 \
+    ros-jazzy-tf2-ros \
     ros-jazzy-geometry-msgs \
     ros-jazzy-sensor-msgs \
+    ros-jazzy-robot-state-publisher \
+    ros-jazzy-launch \
+    ros-jazzy-launch-ros \
+    python3-numpy \
+    python3-scipy \
     xvfb \
     x11-utils \
     mesa-utils \
-    libgl1-mesa-glx \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY simulation/ /workspace/simulation/

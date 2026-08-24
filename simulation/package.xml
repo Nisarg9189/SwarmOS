@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>simulation</name>
+  <version>0.1.0</version>
+  <description>SwarmOS Gazebo warehouse simulation</description>
+  <maintainer email="developer@swarmos.dev">SwarmOS Developer</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>gazebo_ros</depend>
+  <depend>nav2_bringup</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>tf2_ros</depend>
+
+  <exec_depend>gazebo</exec_depend>
+  <exec_depend>ros2launch</exec_depend>
+</package>

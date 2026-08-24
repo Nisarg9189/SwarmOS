@@ -18,19 +18,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     x11-utils \
     mesa-utils \
     libgl1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install FastAPI and Uvicorn for the web backend
+RUN pip3 install --no-cache-dir --break-system-packages \
+    fastapi==0.104.1 \
+    uvicorn[standard]==0.24.0 \
+    pydantic==2.5.0 \
+    pydantic-settings==2.1.0 \
+    python-multipart==0.0.6 \
+    aiofiles==23.2.1
 
 WORKDIR /workspace
 COPY simulation/ simulation/
 COPY amr_agents/ amr_agents/
 COPY comms/ comms/
+COPY web_backend/ web_backend/
 
 # Build the ROS simulation package with colcon
 RUN . /opt/ros/jazzy/setup.sh && \
     colcon build --packages-select simulation --cmake-force-configure
 
 # Add Python packages to PYTHONPATH for agents
-ENV PYTHONPATH=/workspace:/workspace/amr_agents:/workspace/comms:$PYTHONPATH
+ENV PYTHONPATH=/workspace:/workspace/amr_agents:/workspace/comms:/workspace/web_backend:$PYTHONPATH
 
 ENV DISPLAY=:99
 

@@ -1,9 +1,11 @@
 """ROS 2 bridge for simulation control."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import time
-from typing import Optional, Dict, List, Callable, Any
+from typing import Optional, Dict, List, Callable, Any, TYPE_CHECKING
 from datetime import datetime
 from pathlib import Path
 
@@ -16,6 +18,10 @@ try:
     ROS_AVAILABLE = True
 except ImportError:
     ROS_AVAILABLE = False
+
+if TYPE_CHECKING:
+    from nav_msgs.msg import Odometry, OccupancyGrid
+    from rosgraph_msgs.msg import Clock
 
 import yaml
 
@@ -32,10 +38,27 @@ class RoSBridge:
 
     def __init__(self):
         """Initialize ROS 2 bridge."""
+        # Always initialize these regardless of ROS availability
+        self.node = None
+        self.ros_initialized = False
+        self.subscriptions = {}
+        self.clock_sub = None
+        self.map_sub = None
+        self.odom_subs = {}
+        self.goal_pubs = {}
+        self.robots: Dict[str, RobotState] = {}
+        self.sim_time = 0.0
+        self.sim_started = False
+        self.warehouse_map: Optional[OccupancyGrid] = None
+        self.warehouse_graph: Optional[WarehouseGraph] = None
+        self.on_robot_state_changed: Optional[Callable] = None
+        self.on_sim_time_changed: Optional[Callable] = None
+        self.on_robot_added: Optional[Callable] = None
+        self.on_robot_removed: Optional[Callable] = None
+        self.nav_active: Dict[str, bool] = {}
+
         if not ROS_AVAILABLE:
             logger.warning("ROS 2 not available - running in simulation-only mode")
-            self.ros_initialized = False
-            self.node = None
             return
 
         try:
@@ -49,29 +72,6 @@ class RoSBridge:
             logger.error(f"Failed to initialize ROS 2: {e}")
             self.ros_initialized = False
             self.node = None
-
-        # Subscriptions
-        self.subscriptions = {}
-        self.clock_sub = None
-        self.map_sub = None
-        self.odom_subs = {}
-        self.goal_pubs = {}
-
-        # State
-        self.robots: Dict[str, RobotState] = {}
-        self.sim_time = 0.0
-        self.sim_started = False
-        self.warehouse_map: Optional[OccupancyGrid] = None
-        self.warehouse_graph: Optional[WarehouseGraph] = None
-
-        # Callbacks
-        self.on_robot_state_changed: Optional[Callable] = None
-        self.on_sim_time_changed: Optional[Callable] = None
-        self.on_robot_added: Optional[Callable] = None
-        self.on_robot_removed: Optional[Callable] = None
-
-        # Navigation state (for tracking dispatch safety)
-        self.nav_active: Dict[str, bool] = {}  # robot_id -> is_navigation_in_flight
 
     def connect(self) -> bool:
         """Establish ROS 2 connection."""

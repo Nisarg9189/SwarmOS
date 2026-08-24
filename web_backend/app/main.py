@@ -182,19 +182,15 @@ async def lifespan(app: FastAPI):
     global current_scenario_executor
     logger.info("Starting simulation web backend...")
 
-    # Initialize ROS bridge with explicit error checking
-    if not ros_bridge.connect():
-        error_msg = "FATAL: Failed to connect to ROS 2 - ROS 2 connection is required for web interface"
-        logger.error(error_msg)
-        raise RuntimeError(error_msg)
-
-    # Load warehouse graph
-    if not ros_bridge.load_warehouse_graph():
-        error_msg = "FATAL: Failed to load warehouse graph from ROS 2"
-        logger.error(error_msg)
-        raise RuntimeError(error_msg)
-
-    ros_bridge_callbacks()
+    # Initialize ROS bridge with graceful degradation
+    ros_connected = ros_bridge.connect()
+    if ros_connected:
+        # Load warehouse graph
+        if not ros_bridge.load_warehouse_graph():
+            logger.warning("Failed to load warehouse graph from ROS 2")
+        ros_bridge_callbacks()
+    else:
+        logger.warning("ROS 2 not available - running in degraded mode")
 
     # Initialize Zenoh monitor
     zenoh_monitor.connect()
@@ -203,7 +199,7 @@ async def lifespan(app: FastAPI):
     # Start background task
     background_task = asyncio.create_task(background_task_manager())
 
-    logger.info("Backend initialized and running successfully")
+    logger.info("Backend initialized and running (ROS 2 available: %s)", ros_connected)
 
     yield
 

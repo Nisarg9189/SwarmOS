@@ -1,9 +1,11 @@
 """Execute scenarios in the simulation."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import math
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, TYPE_CHECKING
 from datetime import datetime
 
 try:
@@ -12,6 +14,9 @@ try:
     ROS_AVAILABLE = True
 except ImportError:
     ROS_AVAILABLE = False
+
+if TYPE_CHECKING:
+    from rclpy.node import Node
 
 logger = logging.getLogger(__name__)
 

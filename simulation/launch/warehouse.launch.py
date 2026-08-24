@@ -90,7 +90,7 @@ def generate_launch_description():
             f'export GZ_VERSION=garden && ' +
             f'source /opt/ros/jazzy/setup.bash && ' +
             f'. /opt/ros/jazzy/install/setup.bash 2>/dev/null; true && ' +
-            f'ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="-r -v 4 {world_file}"'
+            f'ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="-r -s -v 4 {world_file}"'
         ],
         output='screen'
     )

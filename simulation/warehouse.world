@@ -289,11 +289,11 @@
           <visualize>false</visualize>
         </sensor>
       </link>
-      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
+      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
       </plugin>
       <!-- Odometry plugin publishes /model/amr_0/odometry -->
-      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="odometry_publisher">
+      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="gz::sim::systems::OdometryPublisher">
         <odom_topic>odometry</odom_topic>
         <odom_frame>odom</odom_frame>
         <robot_base_frame>base_link</robot_base_frame>
@@ -358,11 +358,11 @@
           <visualize>false</visualize>
         </sensor>
       </link>
-      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
+      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
       </plugin>
       <!-- Odometry plugin publishes /model/amr_1/odometry -->
-      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="odometry_publisher">
+      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="gz::sim::systems::OdometryPublisher">
         <odom_topic>odometry</odom_topic>
         <odom_frame>odom</odom_frame>
         <robot_base_frame>base_link</robot_base_frame>
@@ -427,11 +427,11 @@
           <visualize>false</visualize>
         </sensor>
       </link>
-      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
+      <plugin filename="libignition-gazebo-pose-publisher-system.so" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
       </plugin>
       <!-- Odometry plugin publishes /model/amr_2/odometry -->
-      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="odometry_publisher">
+      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="gz::sim::systems::OdometryPublisher">
         <odom_topic>odometry</odom_topic>
         <odom_frame>odom</odom_frame>
         <robot_base_frame>base_link</robot_base_frame>

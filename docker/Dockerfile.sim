@@ -24,9 +24,12 @@ COPY simulation/ simulation/
 COPY amr_agents/ amr_agents/
 COPY comms/ comms/
 
-# Build the ROS packages with colcon
+# Build the ROS simulation package with colcon
 RUN . /opt/ros/jazzy/setup.sh && \
-    colcon build --packages-select simulation amr_agents --cmake-force-configure
+    colcon build --packages-select simulation --cmake-force-configure
+
+# Add Python packages to PYTHONPATH for agents
+ENV PYTHONPATH=/workspace:/workspace/amr_agents:/workspace/comms:$PYTHONPATH
 
 ENV DISPLAY=:99
 

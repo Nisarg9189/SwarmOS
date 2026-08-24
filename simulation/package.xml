@@ -2,20 +2,24 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>simulation</name>
-  <version>0.1.0</version>
-  <description>SwarmOS Gazebo warehouse simulation</description>
-  <maintainer email="developer@swarmos.dev">SwarmOS Developer</maintainer>
+  <version>0.0.1</version>
+  <description>SwarmOS Gazebo warehouse simulation with Nav2 stack</description>
+
+  <maintainer email="nisargpatel460@gmail.com">SwarmOS Dev</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <!-- Runtime dependencies -->
+  <depend>ros2launch</depend>
   <depend>ros_gz_sim</depend>
+  <depend>ros_gz_bridge</depend>
   <depend>nav2_bringup</depend>
-  <depend>robot_state_publisher</depend>
-  <depend>tf2_ros</depend>
-  <depend>launch</depend>
-  <depend>launch_ros</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
 
-  <exec_depend>ros_gz</exec_depend>
-  <exec_depend>ros2launch</exec_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

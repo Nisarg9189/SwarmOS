@@ -4,12 +4,19 @@ from pathlib import Path
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
+from ament_index_python.packages import get_package_share_directory
 
 
 def start_bridges_and_nav2(context, *args, **kwargs):
     """Start ros_gz_bridge and Nav2 bringup for each robot."""
     spawn_amrs_count = int(context.launch_configurations['spawn_amrs'])
-    simulation_dir = str(Path(__file__).parent)
+
+    # Get the simulation package directory (handles both source and installed locations)
+    try:
+        simulation_dir = get_package_share_directory('simulation')
+    except:
+        # Fallback to source directory if package not found (for development)
+        simulation_dir = str(Path(__file__).parent.parent)
 
     actions = []
 
@@ -17,6 +24,8 @@ def start_bridges_and_nav2(context, *args, **kwargs):
         robot_id = f"amr_{i}"
 
         # Start ros_gz_bridge for this robot (odometry and lidar)
+        # Bridges: Gazebo topics → ROS2 topics
+        # [  = Gazebo→ROS (incoming), ] = ROS→Gazebo (outgoing)
         bridge_cmd = ExecuteProcess(
             cmd=[
                 'bash', '-c',
@@ -57,7 +66,12 @@ def generate_launch_description():
     )
 
     # Get paths
-    simulation_dir = str(Path(__file__).parent)
+    try:
+        simulation_dir = get_package_share_directory('simulation')
+    except:
+        # Fallback to source directory if package not found (for development)
+        simulation_dir = str(Path(__file__).parent.parent)
+
     world_file = os.path.join(simulation_dir, 'warehouse.world')
 
     ld = LaunchDescription([spawn_amrs_arg])

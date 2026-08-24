@@ -46,7 +46,7 @@ services:
     command: bash -c "
       source /opt/ros/jazzy/setup.bash &&
       source /workspace/install/setup.bash &&
-      ros2 launch /workspace/install/simulation/share/simulation/warehouse.launch.py spawn_amrs:=3"
+      ros2 launch /workspace/install/simulation/share/simulation/launch/warehouse.launch.py spawn_amrs:=3"
     healthcheck:
       test: ["CMD", "bash", "-c", "ps aux | grep -q bash"]
       interval: 10s

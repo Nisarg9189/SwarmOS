@@ -393,11 +393,14 @@ class CoordinationAgent(Node):
         executor = rclpy.executors.SingleThreadedExecutor()
         executor.add_node(self)
         iteration_count = 0
+        logger.info(f"Entering loop: running={self.running}, rclpy.ok()={rclpy.ok()}")
 
         try:
             while self.running and rclpy.ok():
                 try:
                     iteration_count += 1
+                    if iteration_count == 1:
+                        logger.info(f"First iteration of control loop starting")
 
                     # Process ROS 2 callbacks (TF updates, etc.)
                     executor.spin_once(timeout_sec=0.05)

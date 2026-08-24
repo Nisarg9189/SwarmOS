@@ -333,16 +333,35 @@ class ZenohMonitor:
 
         msg = self.robot_state[robot_id]
 
-        # Update from StateMsg
-        status_str = msg.get("status", "ACTIVE")
-        if status_str == "ACTIVE":
-            robot_state.coordination_status = CoordinationStatus.ACTIVE
-        elif status_str == "YIELDING":
-            robot_state.coordination_status = CoordinationStatus.YIELDING
-        elif status_str == "HOLDING":
-            robot_state.coordination_status = CoordinationStatus.HOLDING
-        elif status_str == "FAILED":
-            robot_state.coordination_status = CoordinationStatus.FAILED
+        # Update pose from position data
+        position = msg.get("position", {})
+        if isinstance(position, dict):
+            robot_state.pose.x = float(position.get("x", 0.0))
+            robot_state.pose.y = float(position.get("y", 0.0))
+            robot_state.pose.theta = float(position.get("theta", 0.0))
+
+        # Update velocity data
+        velocity = msg.get("velocity", {})
+        if isinstance(velocity, dict):
+            robot_state.velocity.vx = float(velocity.get("vx", 0.0))
+            robot_state.velocity.vy = float(velocity.get("vy", 0.0))
+            robot_state.velocity.omega = float(velocity.get("omega", 0.0))
+
+        # Update coordination status from state field
+        status_str = msg.get("state", "idle").lower()
+        robot_state.is_online = True
+
+        # Update from intent msg for coordination status
+        if robot_id in self.robot_intent:
+            intent = msg.get("intent", {})
+            priority = intent.get("priority", 50)
+            # Use priority to infer coordination status
+            if priority >= 80:
+                robot_state.coordination_status = CoordinationStatus.ACTIVE
+            elif priority <= 20:
+                robot_state.coordination_status = CoordinationStatus.YIELDING
+            else:
+                robot_state.coordination_status = CoordinationStatus.ACTIVE
 
         robot_state.blocked_by = msg.get("blocked_by")
 
@@ -351,17 +370,18 @@ class ZenohMonitor:
             intent = self.robot_intent[robot_id]
             path_data = intent.get("path", [])
 
-            # Convert path to Waypoint objects
-            robot_state.planned_route = [
-                Waypoint(
-                    x=wp["x"],
-                    y=wp["y"],
-                    eta=wp["eta"],
-                    etd=wp["etd"],
-                    cell_id=wp.get("cell_id"),
-                )
-                for wp in path_data
-            ]
+            # Convert path to Waypoint objects if available
+            if path_data and isinstance(path_data, list):
+                robot_state.planned_route = [
+                    Waypoint(
+                        x=wp.get("x", 0),
+                        y=wp.get("y", 0),
+                        eta=wp.get("eta"),
+                        etd=wp.get("etd"),
+                        cell_id=wp.get("cell_id"),
+                    )
+                    for wp in path_data
+                ]
 
     def unsubscribe_from_robot(self, robot_id: str) -> None:
         """Unsubscribe from a robot's topics."""

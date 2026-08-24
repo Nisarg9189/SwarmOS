@@ -392,10 +392,15 @@ class CoordinationAgent(Node):
         rate = self.create_rate(20)  # 20 Hz
         executor = rclpy.executors.SingleThreadedExecutor()
         executor.add_node(self)
+        iteration_count = 0
 
         try:
             while self.running and rclpy.ok():
                 try:
+                    iteration_count += 1
+                    if iteration_count % 100 == 0:  # Log every 100 iterations (~5 seconds at 20Hz)
+                        logger.info(f"Control loop iteration {iteration_count}: pos={self.last_position}")
+
                     # Process ROS 2 callbacks (TF updates, etc.)
                     executor.spin_once(timeout_sec=0.05)
 

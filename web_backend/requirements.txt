@@ -1,0 +1,16 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+aiofiles==23.2.1
+pyyaml==6.0.1
+
+# ROS 2 and Zenoh (only when running in ROS environment)
+# These are optional - backend gracefully degrades without them
+# rclpy (included in ROS 2 Jazzy)
+# zenoh-python (install in ROS environment via pip)
+
+# Development
+pytest==7.4.3
+httpx==0.25.2

@@ -388,62 +388,35 @@ class CoordinationAgent(Node):
 
     def run_control_loop(self) -> None:
         """Main control loop. Runs continuously with executor integration."""
-        logger.info(f"Starting control loop for {self.robot_id}")
+        logger.info(f"Control loop started for {self.robot_id}")
         executor = rclpy.executors.SingleThreadedExecutor()
         executor.add_node(self)
-        iteration_count = 0
         loop_rate_hz = 20
         loop_period_s = 1.0 / loop_rate_hz
         last_iteration_time = time.time()
-        logger.info(f"Entering loop: running={self.running}, rclpy.ok()={rclpy.ok()}")
 
         try:
             while self.running and rclpy.ok():
                 try:
-                    iteration_count += 1
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: spin_once...")
-
                     # Process ROS 2 callbacks (TF updates, etc.)
                     executor.spin_once(timeout_sec=0.05)
 
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: sense...")
                     sensor_data = self.sense()
-
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: plan...")
                     plan = self.plan(sensor_data)
                     self.current_plan = plan
 
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: execute...")
                     self.execute(plan)
-
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: publish_state...")
                     self.publish_state(sensor_data)
-
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: publish_intent...")
                     self.publish_intent(plan)
 
-                    if iteration_count % 100 == 0:
-                        logger.info(f"Control loop iteration {iteration_count}: pos={sensor_data.position}")
-
                     # Rate limiting using wall-clock time (avoids ROS 2 clock issues)
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: rate.sleep...")
                     elapsed = time.time() - last_iteration_time
                     sleep_time = max(0, loop_period_s - elapsed)
                     if sleep_time > 0:
                         time.sleep(sleep_time)
                     last_iteration_time = time.time()
-
-                    if iteration_count <= 3:
-                        logger.info(f"Iter {iteration_count}: done")
                 except Exception as e:
-                    logger.error(f"Control loop iteration {iteration_count} error: {e}", exc_info=True)
+                    logger.error(f"Control loop error: {e}", exc_info=True)
                     time.sleep(0.1)
         except Exception as e:
             logger.error(f"Control loop fatal error: {e}", exc_info=True)

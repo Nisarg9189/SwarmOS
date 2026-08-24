@@ -98,10 +98,11 @@ class CoordinationAgent(Node):
             import os
 
             # Create config with Connect parameter
-            conf = zenoh.Config()
             connect_endpoints = os.getenv('ZENOH_CONNECT_ENDPOINTS', zenoh_endpoint)
             if connect_endpoints:
-                conf.insert_json5(f"connect/endpoints = ['{connect_endpoints}']")
+                conf = zenoh.Config.from_json5(f"{{ connect: {{ endpoints: ['{connect_endpoints}'] }} }}")
+            else:
+                conf = zenoh.Config()
             self.zenoh_session = zenoh.open(conf)
 
             logger.info(f"Connected to Zenoh")

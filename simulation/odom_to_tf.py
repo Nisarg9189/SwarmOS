@@ -29,7 +29,7 @@ class OdomToTf(Node):
         """Convert odometry message to TF transform."""
         t = TransformStamped()
         t.header.stamp = msg.header.stamp
-        t.header.frame_id = msg.header.frame_id  # Usually "odom"
+        t.header.frame_id = f'{self.robot_id}/odom'  # Namespaced odom frame
         t.child_frame_id = f'{self.robot_id}/base_link'
         t.transform.translation.x = msg.pose.pose.position.x
         t.transform.translation.y = msg.pose.pose.position.y

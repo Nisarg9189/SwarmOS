@@ -13,8 +13,9 @@ from .ros_bridge import RoSBridge
 from .zenoh_monitor import ZenohMonitor
 from .scenario_executor import ScenarioExecutor
 from .models import (
-    RobotState, SimulationStatus, Pose, CoordinationEvent,
-    NavigationEvent, SimulationEvent, Scenario, WarehouseGraph
+    RobotState, SimulationStatus, Pose, Velocity, CoordinationEvent,
+    NavigationEvent, SimulationEvent, Scenario, WarehouseGraph,
+    RobotStatus, CoordinationStatus
 )
 
 logger = logging.getLogger(__name__)

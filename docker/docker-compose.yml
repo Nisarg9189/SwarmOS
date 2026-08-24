@@ -173,6 +173,44 @@ services:
       cd /workspace/amr_agents &&
       python3 task_dispatcher.py"
 
+  # Web Backend API (FastAPI with ROS 2 integration)
+  web-backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sim
+    image: swarmos:sim
+    mem_limit: 512m
+    depends_on:
+      gazebo-sim:
+        condition: service_healthy
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      ROS_DOMAIN_ID: 42
+      ZENOH_ENDPOINT: "tcp/zenoh-router:7447"
+      ZENOH_CONNECT_ENDPOINTS: "tcp/zenoh-router:7447"
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../web_backend:/workspace/web_backend:ro
+      - ../amr_agents:/workspace/amr_agents:ro
+      - ../comms:/workspace/comms:ro
+    networks:
+      - swarmos
+    command: bash -c "
+      source /opt/ros/jazzy/setup.bash &&
+      source /workspace/install/setup.bash &&
+      sleep 5 &&
+      pip3 install --no-cache-dir -r /workspace/web_backend/requirements.txt &&
+      cd /workspace/web_backend &&
+      python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
 networks:
   swarmos:
     driver: bridge

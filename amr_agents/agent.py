@@ -387,24 +387,32 @@ class CoordinationAgent(Node):
         return self.current_plan is None or self.current_plan.task_id is None
 
     def run_control_loop(self) -> None:
-        """Main control loop. Runs continuously."""
+        """Main control loop. Runs continuously with executor integration."""
         logger.info(f"Starting control loop for {self.robot_id}")
         rate = self.create_rate(20)  # 20 Hz
+        executor = rclpy.executors.SingleThreadedExecutor()
+        executor.add_node(self)
 
-        while self.running and rclpy.ok():
-            try:
-                sensor_data = self.sense()
-                plan = self.plan(sensor_data)
-                self.current_plan = plan
+        try:
+            while self.running and rclpy.ok():
+                try:
+                    # Process ROS 2 callbacks (TF updates, etc.)
+                    executor.spin_once(timeout_sec=0.05)
 
-                self.execute(plan)
-                self.publish_state(sensor_data)
-                self.publish_intent(plan)
+                    sensor_data = self.sense()
+                    plan = self.plan(sensor_data)
+                    self.current_plan = plan
 
-                rate.sleep()
-            except Exception as e:
-                logger.error(f"Control loop error: {e}")
-                time.sleep(0.1)
+                    self.execute(plan)
+                    self.publish_state(sensor_data)
+                    self.publish_intent(plan)
+
+                    rate.sleep()
+                except Exception as e:
+                    logger.error(f"Control loop error: {e}")
+                    time.sleep(0.1)
+        finally:
+            executor.remove_node(self)
 
     def start(self) -> None:
         """Start the agent's control loop in a background thread."""
@@ -416,18 +424,11 @@ class CoordinationAgent(Node):
         self.control_loop_thread.start()
 
     def _run_with_rclpy(self) -> None:
-        """Run control loop with rclpy executor."""
-        executor = rclpy.executors.SingleThreadedExecutor()
-        executor.add_node(self)
-
+        """Run control loop with rclpy executor integration."""
         try:
-            while self.running and rclpy.ok():
-                executor.spin_once(timeout_sec=0.05)
-                time.sleep(0.05)
+            self.run_control_loop()
         except Exception as e:
-            logger.error(f"Executor error: {e}")
-        finally:
-            executor.remove_node(self)
+            logger.error(f"Control loop fatal error: {e}")
 
     def shutdown(self) -> None:
         """Gracefully shut down the agent."""

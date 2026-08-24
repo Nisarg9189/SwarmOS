@@ -24,8 +24,10 @@ def start_bridges_and_nav2(context, *args, **kwargs):
         robot_id = f"amr_{i}"
 
         # Start ros_gz_bridge for this robot (odometry and lidar)
-        # Bridges: Gazebo topics → ROS2 topics
+        # Bridges: Gazebo /model/{robot_id}/* topics → ROS2 /{robot_id}/* topics
         # [  = Gazebo→ROS (incoming), ] = ROS→Gazebo (outgoing)
+        # Remapping: /model/{robot_id}/odometry → /{robot_id}/odom
+        #            /model/{robot_id}/lidar/scan → /{robot_id}/scan
         bridge_cmd = ExecuteProcess(
             cmd=[
                 'bash', '-c',
@@ -33,7 +35,10 @@ def start_bridges_and_nav2(context, *args, **kwargs):
                 f'ros2 run ros_gz_bridge parameter_bridge ' +
                 f'/model/{robot_id}/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry ' +
                 f'/model/{robot_id}/lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan ' +
-                f'/model/{robot_id}/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist'
+                f'/model/{robot_id}/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist ' +
+                f'--ros-args ' +
+                f'-r /model/{robot_id}/odometry:=/{robot_id}/odom ' +
+                f'-r /model/{robot_id}/lidar/scan:=/{robot_id}/scan'
             ],
             output='screen'
         )

@@ -50,7 +50,7 @@ bt_navigator:
     use_sim_time: true
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /odom
+    odom_topic: odom
     enable_groot_monitoring: true
     groot_monitor_port: 9090
     default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"

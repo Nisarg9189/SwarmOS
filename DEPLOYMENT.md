@@ -34,6 +34,28 @@ listen [::]:9000;   # IPv6
 http://[2001:41d0:303:ec51::23fa]:9000
 ```
 
+#### IPv6 Configuration Notes
+
+The public IPv6 address requires DAD (Duplicate Address Detection) to be disabled to work reliably.
+This is configured in `/etc/systemd/network/eth0.network`:
+
+```ini
+[Network]
+Address = 2001:41d0:303:ec51::23fa/128
+IPv6DuplicateAddressDetection = none
+```
+
+If the address shows "dadfailed tentative" status, reload the network configuration:
+```bash
+systemctl reload-or-restart systemd-networkd
+```
+
+Verify the address is active:
+```bash
+ip -6 addr show | grep 2001:41d0
+# Should show: inet6 2001:41d0:303:ec51::23fa/128 scope global
+```
+
 ### Backend Services
 
 - **Frontend:** Next.js 14.2.35 on port 3000

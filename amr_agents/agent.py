@@ -398,8 +398,6 @@ class CoordinationAgent(Node):
             while self.running and rclpy.ok():
                 try:
                     iteration_count += 1
-                    if iteration_count % 100 == 0:  # Log every 100 iterations (~5 seconds at 20Hz)
-                        logger.info(f"Control loop iteration {iteration_count}: pos={self.last_position}")
 
                     # Process ROS 2 callbacks (TF updates, etc.)
                     executor.spin_once(timeout_sec=0.05)
@@ -412,10 +410,15 @@ class CoordinationAgent(Node):
                     self.publish_state(sensor_data)
                     self.publish_intent(plan)
 
+                    if iteration_count % 100 == 0:  # Log every 100 iterations (~5 seconds at 20Hz)
+                        logger.info(f"Control loop iteration {iteration_count}: pos={sensor_data.position}")
+
                     rate.sleep()
                 except Exception as e:
-                    logger.error(f"Control loop error: {e}")
+                    logger.error(f"Control loop iteration {iteration_count} error: {e}", exc_info=True)
                     time.sleep(0.1)
+        except Exception as e:
+            logger.error(f"Control loop fatal error: {e}", exc_info=True)
         finally:
             executor.remove_node(self)
 

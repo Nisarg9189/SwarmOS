@@ -7,8 +7,8 @@ from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 
 
-def start_bridges_and_nav2(context, *args, **kwargs):
-    """Start ros_gz_bridge and Nav2 bringup for each robot."""
+def start_bridges_and_odom_tf(context, *args, **kwargs):
+    """Start ros_gz_bridge and odometry-to-TF converters for each robot."""
     spawn_amrs_count = int(context.launch_configurations['spawn_amrs'])
 
     # Get the simulation package directory (handles both source and installed locations)
@@ -46,6 +46,7 @@ def start_bridges_and_nav2(context, *args, **kwargs):
 
         # Start odometry-to-TF converter for this robot
         # Reads /{robot_id}/odom and publishes /tf with odom→base_link transform
+        # This must start before Nav2 to ensure TF frames exist
         odom_to_tf_cmd = ExecuteProcess(
             cmd=[
                 'bash', '-c',
@@ -55,6 +56,25 @@ def start_bridges_and_nav2(context, *args, **kwargs):
             output='screen'
         )
         actions.append(odom_to_tf_cmd)
+
+    return actions
+
+
+def start_nav2(context, *args, **kwargs):
+    """Start Nav2 bringup for each robot (after bridges and TF converters are ready)."""
+    spawn_amrs_count = int(context.launch_configurations['spawn_amrs'])
+
+    # Get the simulation package directory (handles both source and installed locations)
+    try:
+        simulation_dir = get_package_share_directory('simulation')
+    except:
+        # Fallback to source directory if package not found (for development)
+        simulation_dir = str(Path(__file__).parent.parent)
+
+    actions = []
+
+    for i in range(spawn_amrs_count):
+        robot_id = f"amr_{i}"
 
         # Start Nav2 bringup for this robot
         nav2_cmd = ExecuteProcess(
@@ -108,12 +128,19 @@ def generate_launch_description():
     )
     ld.add_action(gazebo_cmd)
 
-    # Start bridges and Nav2 stacks for each robot after Gazebo is ready (5 second delay)
-    bridges_and_nav2_actions = TimerAction(
+    # Start bridges and odometry-to-TF converters after Gazebo is ready (5 second delay)
+    bridges_and_odom_tf_actions = TimerAction(
         period=5.0,
-        actions=[OpaqueFunction(function=start_bridges_and_nav2)]
+        actions=[OpaqueFunction(function=start_bridges_and_odom_tf)]
     )
-    ld.add_action(bridges_and_nav2_actions)
+    ld.add_action(bridges_and_odom_tf_actions)
+
+    # Start Nav2 stacks after bridges and TF converters are ready (10 second delay total)
+    nav2_actions = TimerAction(
+        period=10.0,
+        actions=[OpaqueFunction(function=start_nav2)]
+    )
+    ld.add_action(nav2_actions)
 
     return ld
 

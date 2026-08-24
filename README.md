@@ -71,17 +71,28 @@ See `docs/ARCHITECTURE.md` for full design.
 
 ## Current Status
 
-**[Phase: Foundation]** Setting up repo structure and interface contracts.
+**[Phase: Phase 2 - Backend Deployment]** Setting up ROS 2 backend integration and end-to-end verification.
 
+### Phase 1: Foundation ✓
 - [x] Directory structure
 - [x] Architecture documentation
 - [x] Communication protocol spec
 - [x] Agent interface contract
 - [x] Docker build setup
-- [ ] Working Gazebo simulation (Sim Eng)
-- [ ] Agent skeleton + Zenoh bridge (Comms Eng + Agent Eng)
-- [ ] Benchmark baseline (Bench Eng)
-- [ ] Integration testing
+- [x] Working Gazebo simulation with odometry
+- [x] Agent skeleton + Zenoh bridge
+- [x] Benchmark baseline setup
+
+### Phase 2: Backend Deployment (In Progress)
+- [x] **SWA-31**: Deploy ROS 2–Enabled Backend (COMPLETE)
+  - [x] Web backend FastAPI service added to docker-compose
+  - [x] Backend receives live `/amr_*/odom` data
+  - [x] REST API endpoints for robot control
+  - [x] WebSocket real-time updates
+  - [x] End-to-end verification guide
+- [ ] **SWA-32**: Frontend integration with backend APIs
+- [ ] **SWA-33**: Full integration and coordination testing
+- [ ] **SWA-34**: Production deployment and scaling
 
 ## Team
 

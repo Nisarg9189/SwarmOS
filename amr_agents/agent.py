@@ -97,17 +97,12 @@ class CoordinationAgent(Node):
             # Use environment variables ZENOH_CONNECT_ENDPOINTS if available
             import os
 
-            # Try creating config with Connect parameter
-            try:
-                conf = zenoh.Config()
-                connect_endpoints = os.getenv('ZENOH_CONNECT_ENDPOINTS', zenoh_endpoint)
-                if connect_endpoints:
-                    conf.insert_json5(f"connect/endpoints = ['{connect_endpoints}']")
-                self.zenoh_session = zenoh.open(conf)
-            except Exception as e_cfg:
-                # Fallback: try without explicit config
-                logger.debug(f"Config creation failed: {e_cfg}, trying simple open...")
-                self.zenoh_session = zenoh.open()
+            # Create config with Connect parameter
+            conf = zenoh.Config()
+            connect_endpoints = os.getenv('ZENOH_CONNECT_ENDPOINTS', zenoh_endpoint)
+            if connect_endpoints:
+                conf.insert_json5(f"connect/endpoints = ['{connect_endpoints}']")
+            self.zenoh_session = zenoh.open(conf)
 
             logger.info(f"Connected to Zenoh")
         except Exception as e:

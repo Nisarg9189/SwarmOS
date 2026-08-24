@@ -44,6 +44,18 @@ def start_bridges_and_nav2(context, *args, **kwargs):
         )
         actions.append(bridge_cmd)
 
+        # Start odometry-to-TF converter for this robot
+        # Reads /{robot_id}/odom and publishes /tf with odom→base_link transform
+        odom_to_tf_cmd = ExecuteProcess(
+            cmd=[
+                'bash', '-c',
+                f'source /opt/ros/jazzy/setup.bash && ' +
+                f'python3 {simulation_dir}/odom_to_tf.py {robot_id}'
+            ],
+            output='screen'
+        )
+        actions.append(odom_to_tf_cmd)
+
         # Start Nav2 bringup for this robot
         nav2_cmd = ExecuteProcess(
             cmd=[

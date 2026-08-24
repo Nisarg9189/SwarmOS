@@ -74,7 +74,6 @@ class CoordinationAgent(Node):
         self.blocked_since_ms: Optional[int] = None
         self.peer_states: Dict[str, dict] = {}
         self.last_position: Optional[np.ndarray] = None
-        self.control_loop_thread: Optional[threading.Thread] = None
 
         # ROS 2 setup
         self.tf_buffer = Buffer()
@@ -387,27 +386,29 @@ class CoordinationAgent(Node):
         return self.current_plan is None or self.current_plan.task_id is None
 
     def run_control_loop(self) -> None:
-        """Main control loop. Runs continuously with executor integration."""
+        """Main control loop running in main thread."""
         logger.info(f"Control loop started for {self.robot_id}")
-        executor = rclpy.executors.SingleThreadedExecutor()
-        executor.add_node(self)
         loop_rate_hz = 20
         loop_period_s = 1.0 / loop_rate_hz
         last_iteration_time = time.time()
+        iteration_count = 0
 
         try:
             while self.running and rclpy.ok():
                 try:
-                    # Process ROS 2 callbacks (TF updates, etc.)
-                    executor.spin_once(timeout_sec=0.05)
-
+                    logger.debug(f"Starting iteration {iteration_count}")
                     sensor_data = self.sense()
+                    logger.debug(f"Sensed data: pos={sensor_data.position}")
                     plan = self.plan(sensor_data)
                     self.current_plan = plan
 
                     self.execute(plan)
                     self.publish_state(sensor_data)
                     self.publish_intent(plan)
+
+                    iteration_count += 1
+                    if iteration_count % 20 == 0:
+                        logger.info(f"Control loop iteration {iteration_count} for {self.robot_id}")
 
                     # Rate limiting using wall-clock time (avoids ROS 2 clock issues)
                     elapsed = time.time() - last_iteration_time
@@ -420,24 +421,11 @@ class CoordinationAgent(Node):
                     time.sleep(0.1)
         except Exception as e:
             logger.error(f"Control loop fatal error: {e}", exc_info=True)
-        finally:
-            executor.remove_node(self)
 
     def start(self) -> None:
-        """Start the agent's control loop in a background thread."""
+        """Start the agent's control loop (runs synchronously in current thread)."""
         logger.info(f"Starting agent {self.robot_id}")
-        self.control_loop_thread = threading.Thread(
-            target=self._run_with_rclpy,
-            daemon=True
-        )
-        self.control_loop_thread.start()
-
-    def _run_with_rclpy(self) -> None:
-        """Run control loop with rclpy executor integration."""
-        try:
-            self.run_control_loop()
-        except Exception as e:
-            logger.error(f"Control loop fatal error: {e}")
+        self.run_control_loop()
 
     def shutdown(self) -> None:
         """Gracefully shut down the agent."""
@@ -448,9 +436,6 @@ class CoordinationAgent(Node):
             self.zenoh_session.close()
         except Exception as e:
             logger.error(f"Zenoh close error: {e}")
-
-        if self.control_loop_thread:
-            self.control_loop_thread.join(timeout=2.0)
 
 
 def main():

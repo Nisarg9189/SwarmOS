@@ -1,0 +1,164 @@
+version: '3.9'
+
+services:
+  # Zenoh Router for inter-agent communication
+  zenoh-router:
+    image: eclipse/zenoh:latest
+    ports:
+      - "7447:7447"
+    environment:
+      RUST_LOG: debug
+    command: [
+      "/zenohd",
+      "--conf", "{ listeners: [ { protocol: 'tcp', address: '0.0.0.0:7447' } ] }"
+    ]
+    networks:
+      - swarmos
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/info"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
+  # Gazebo Simulation + Nav2 (single instance shared by all AMRs)
+  gazebo-sim:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sim
+    image: swarmos:sim
+    depends_on:
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      ROS_DOMAIN_ID: 42
+      GAZEBO_MODEL_PATH: /workspace/simulation/models:/opt/ros/jazzy/share/gazebo_ros/models
+      GAZEBO_RESOURCE_PATH: /workspace/simulation
+      DISPLAY: :99
+      LIBGL_ALWAYS_INDIRECT: 1
+    volumes:
+      - ../simulation:/workspace/simulation:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    networks:
+      - swarmos
+    command: bash -c "
+      Xvfb :99 -screen 0 1024x768x24 &
+      sleep 2 &&
+      source /opt/ros/jazzy/setup.bash &&
+      ros2 launch simulation warehouse.launch.py spawn_amrs:=3"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "source /opt/ros/jazzy/setup.bash && ros2 topic list | grep -q gazebo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Coordination Agent 0
+  agent-0:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sim
+    image: swarmos:sim
+    depends_on:
+      gazebo-sim:
+        condition: service_healthy
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      ROS_DOMAIN_ID: 42
+      ROBOT_ID: amr_0
+      ZENOH_ENDPOINT: "tcp/zenoh-router:7447"
+      RUST_LOG: warn
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ../amr_agents:/workspace/amr_agents:ro
+      - ../comms:/workspace/comms:ro
+    networks:
+      - swarmos
+    command: bash -c "
+      source /opt/ros/jazzy/setup.bash &&
+      sleep 5 &&
+      cd /workspace/amr_agents &&
+      python3 agent.py --robot_id amr_0"
+
+  # Coordination Agent 1
+  agent-1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sim
+    image: swarmos:sim
+    depends_on:
+      gazebo-sim:
+        condition: service_healthy
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      ROS_DOMAIN_ID: 42
+      ROBOT_ID: amr_1
+      ZENOH_ENDPOINT: "tcp/zenoh-router:7447"
+      RUST_LOG: warn
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ../amr_agents:/workspace/amr_agents:ro
+      - ../comms:/workspace/comms:ro
+    networks:
+      - swarmos
+    command: bash -c "
+      source /opt/ros/jazzy/setup.bash &&
+      sleep 5 &&
+      cd /workspace/amr_agents &&
+      python3 agent.py --robot_id amr_1"
+
+  # Coordination Agent 2
+  agent-2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sim
+    image: swarmos:sim
+    depends_on:
+      gazebo-sim:
+        condition: service_healthy
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      ROS_DOMAIN_ID: 42
+      ROBOT_ID: amr_2
+      ZENOH_ENDPOINT: "tcp/zenoh-router:7447"
+      RUST_LOG: warn
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ../amr_agents:/workspace/amr_agents:ro
+      - ../comms:/workspace/comms:ro
+    networks:
+      - swarmos
+    command: bash -c "
+      source /opt/ros/jazzy/setup.bash &&
+      sleep 5 &&
+      cd /workspace/amr_agents &&
+      python3 agent.py --robot_id amr_2"
+
+  # Task dispatcher (assigns tasks to agents)
+  task-dispatcher:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sim
+    image: swarmos:sim
+    depends_on:
+      zenoh-router:
+        condition: service_healthy
+    environment:
+      ROS_DOMAIN_ID: 42
+      ZENOH_ENDPOINT: "tcp/zenoh-router:7447"
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ../amr_agents:/workspace/amr_agents:ro
+      - ../comms:/workspace/comms:ro
+    networks:
+      - swarmos
+    command: bash -c "
+      source /opt/ros/jazzy/setup.bash &&
+      sleep 10 &&
+      cd /workspace/amr_agents &&
+      python3 task_dispatcher.py"
+
+networks:
+  swarmos:
+    driver: bridge

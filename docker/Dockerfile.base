@@ -1,0 +1,38 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ROS_DISTRO=jazzy
+ENV ROS_DOMAIN_ID=42
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg2 \
+    lsb-release \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sSL https://repo.ros2.org/ros.key | apt-key add - && \
+    echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-jazzy-desktop \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    git \
+    wget \
+    nano \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir \
+    python-zenoh==0.10.* \
+    numpy \
+    scipy \
+    pyyaml \
+    click \
+    python-socketio \
+    aiohttp
+
+RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
+
+WORKDIR /workspace

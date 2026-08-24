@@ -1,0 +1,21 @@
+FROM swarmos:base
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-jazzy-gazebo-* \
+    ros-jazzy-nav2-* \
+    ros-jazzy-tf2-* \
+    ros-jazzy-geometry-msgs \
+    ros-jazzy-sensor-msgs \
+    xvfb \
+    x11-utils \
+    mesa-utils \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY simulation/ /workspace/simulation/
+COPY amr_agents/ /workspace/amr_agents/
+COPY comms/ /workspace/comms/
+
+ENV DISPLAY=:99
+
+CMD ["/bin/bash"]

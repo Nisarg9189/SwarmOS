@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ROS/Gazebo
+devel/
+install/
+build/
+.catkin_workspace
+.gazebo/
+
+# Docker
+.docker/
+
+# Test results
+.pytest_cache/
+*.log
+test_results/
+benchmark_results/
+
+# Simulation logs
+simulation/logs/
+*.rosbag*
+
+# OS
+.DS_Store
+.env
+.env.local
+
+# Benchmark outputs
+*.json
+flamegraph.html
+simulation_run.mp4
+
+# Paperclip runtime (local execution artifacts)
+.paperclip-runtime/

@@ -33,11 +33,11 @@ def start_bridges_and_nav2(context, *args, **kwargs):
                 'bash', '-c',
                 f'source /opt/ros/jazzy/setup.bash && ' +
                 f'ros2 run ros_gz_bridge parameter_bridge ' +
-                f'/model/{robot_id}/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry ' +
+                f'/model/{robot_id}/odometry_with_covariance@nav_msgs/msg/Odometry[gz.msgs.OdometryWithCovariance ' +
                 f'/model/{robot_id}/lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan ' +
                 f'/model/{robot_id}/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist ' +
                 f'--ros-args ' +
-                f'-r /model/{robot_id}/odometry:=/{robot_id}/odom ' +
+                f'-r /model/{robot_id}/odometry_with_covariance:=/{robot_id}/odom ' +
                 f'-r /model/{robot_id}/lidar/scan:=/{robot_id}/scan'
             ],
             output='screen'

@@ -292,7 +292,7 @@
       <plugin filename="libignition-gazebo-pose-publisher-system.so" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
       </plugin>
-      <!-- Odometry plugin publishes /model/amr_0/odometry -->
+      <!-- Odometry plugin publishes /model/amr_0/odometry_with_covariance (gz-sim 8 default) -->
       <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="gz::sim::systems::OdometryPublisher">
         <odom_topic>odometry</odom_topic>
         <odom_frame>odom</odom_frame>
@@ -361,7 +361,7 @@
       <plugin filename="libignition-gazebo-pose-publisher-system.so" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
       </plugin>
-      <!-- Odometry plugin publishes /model/amr_1/odometry -->
+      <!-- Odometry plugin publishes /model/amr_1/odometry_with_covariance (gz-sim 8 default) -->
       <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="gz::sim::systems::OdometryPublisher">
         <odom_topic>odometry</odom_topic>
         <odom_frame>odom</odom_frame>
@@ -430,7 +430,7 @@
       <plugin filename="libignition-gazebo-pose-publisher-system.so" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
       </plugin>
-      <!-- Odometry plugin publishes /model/amr_2/odometry -->
+      <!-- Odometry plugin publishes /model/amr_2/odometry_with_covariance (gz-sim 8 default) -->
       <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="gz::sim::systems::OdometryPublisher">
         <odom_topic>odometry</odom_topic>
         <odom_frame>odom</odom_frame>

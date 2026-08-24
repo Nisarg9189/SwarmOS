@@ -30,8 +30,13 @@ source ~/.bashrc
 export DISPLAY=:99
 Xvfb :99 -screen 0 1024x768x24 &
 
-# Terminal 2: Zenoh Router
-docker run -d --name zenoh-router --network host -p 7447:7447 eclipse/zenoh:latest
+# Terminal 2: Zenoh Router (native, no Docker)
+# First-time only: Install Zenoh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+cargo install zenoh-cli
+# Then start Zenoh router:
+zenohd --conf "{ listeners: [ { protocol: 'tcp', address: '0.0.0.0:7447' } ] }"
 
 # Terminal 3: Gazebo Sim
 source ~/.bashrc && export ROS_DOMAIN_ID=42 && \
@@ -110,18 +115,8 @@ pkill -f "ros2"
 pkill -f "uvicorn"
 pkill -f "npm"
 pkill -f "Xvfb"
-docker stop zenoh-router 2>/dev/null || true
-docker rm zenoh-router 2>/dev/null || true
+pkill -f "zenohd"
 echo "All services stopped"
-```
-
-## Remove Docker Images
-
-```bash
-docker-compose -f /opt/swarmos/docker/docker-compose.yml down --volumes 2>/dev/null
-docker rmi swarmos:dev swarmos:sim swarmos-qa-test:latest swarmos:base eclipse/zenoh:latest -f 2>/dev/null
-docker image prune -f
-echo "✓ Docker images removed"
 ```
 
 ## Troubleshooting

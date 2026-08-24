@@ -125,34 +125,26 @@ export GAZEBO_RESOURCE_PATH=/opt/swarmos/simulation
 export ZENOH_ENDPOINT="tcp/127.0.0.1:7447"
 ```
 
-### 3.2 Start Zenoh Router
+### 3.2 Start Zenoh Router (Native - No Docker)
 
 **Terminal 1: Zenoh Router**
 
 ```bash
-# Install Zenoh router (if not already installed)
-cargo install zenoh-cli 2>/dev/null || \
-  (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-   source "$HOME/.cargo/env" && \
-   cargo install zenoh-cli)
+# FIRST TIME ONLY: Install Rust and Zenoh
+# (Skip if already installed - check: which zenohd)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+cargo install zenoh-cli
 
-# Or use the pre-built Docker image via standalone binary:
-# Download and run zenoh router on port 7447
-docker run -d \
-  --name zenoh-router \
-  --network host \
-  -p 7447:7447 \
-  -e RUST_LOG=info \
-  eclipse/zenoh:latest \
-  /zenohd --conf "{ listeners: [ { protocol: 'tcp', address: '0.0.0.0:7447' } ] }"
-
-# Or run directly if Rust/Cargo available:
+# Run Zenoh router on port 7447
 zenohd --conf "{ listeners: [ { protocol: 'tcp', address: '0.0.0.0:7447' } ] }" 2>&1 | tee /tmp/zenoh.log &
 
 # Verify Zenoh is running
 sleep 2
 curl http://localhost:7447/info 2>/dev/null || echo "Waiting for Zenoh..."
 ```
+
+**Note:** Docker is not needed. Zenoh runs natively with minimal overhead.
 
 ### 3.3 Start Gazebo Simulation + Nav2
 

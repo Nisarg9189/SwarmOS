@@ -399,24 +399,42 @@ class CoordinationAgent(Node):
             while self.running and rclpy.ok():
                 try:
                     iteration_count += 1
-                    if iteration_count == 1:
-                        logger.info(f"First iteration of control loop starting")
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: spin_once...")
 
                     # Process ROS 2 callbacks (TF updates, etc.)
                     executor.spin_once(timeout_sec=0.05)
 
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: sense...")
                     sensor_data = self.sense()
+
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: plan...")
                     plan = self.plan(sensor_data)
                     self.current_plan = plan
 
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: execute...")
                     self.execute(plan)
+
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: publish_state...")
                     self.publish_state(sensor_data)
+
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: publish_intent...")
                     self.publish_intent(plan)
 
-                    if iteration_count % 100 == 0:  # Log every 100 iterations (~5 seconds at 20Hz)
+                    if iteration_count % 100 == 0:
                         logger.info(f"Control loop iteration {iteration_count}: pos={sensor_data.position}")
 
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: rate.sleep...")
                     rate.sleep()
+
+                    if iteration_count <= 3:
+                        logger.info(f"Iter {iteration_count}: done")
                 except Exception as e:
                     logger.error(f"Control loop iteration {iteration_count} error: {e}", exc_info=True)
                     time.sleep(0.1)

@@ -6,8 +6,8 @@ from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction, O
 from launch.substitutions import LaunchConfiguration
 
 
-def start_nav2_stacks(context, *args, **kwargs):
-    """Start Nav2 bringup for each robot."""
+def start_bridges_and_nav2(context, *args, **kwargs):
+    """Start ros_gz_bridge and Nav2 bringup for each robot."""
     spawn_amrs_count = int(context.launch_configurations['spawn_amrs'])
     simulation_dir = str(Path(__file__).parent)
 
@@ -15,6 +15,20 @@ def start_nav2_stacks(context, *args, **kwargs):
 
     for i in range(spawn_amrs_count):
         robot_id = f"amr_{i}"
+
+        # Start ros_gz_bridge for this robot (odometry and lidar)
+        bridge_cmd = ExecuteProcess(
+            cmd=[
+                'bash', '-c',
+                f'source /opt/ros/jazzy/setup.bash && ' +
+                f'ros2 run ros_gz_bridge parameter_bridge ' +
+                f'/model/{robot_id}/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry ' +
+                f'/model/{robot_id}/lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan ' +
+                f'/model/{robot_id}/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist'
+            ],
+            output='screen'
+        )
+        actions.append(bridge_cmd)
 
         # Start Nav2 bringup for this robot
         nav2_cmd = ExecuteProcess(
@@ -63,12 +77,12 @@ def generate_launch_description():
     )
     ld.add_action(gazebo_cmd)
 
-    # Start Nav2 stacks for each robot after Gazebo is ready (5 second delay)
-    nav2_actions = TimerAction(
+    # Start bridges and Nav2 stacks for each robot after Gazebo is ready (5 second delay)
+    bridges_and_nav2_actions = TimerAction(
         period=5.0,
-        actions=[OpaqueFunction(function=start_nav2_stacks)]
+        actions=[OpaqueFunction(function=start_bridges_and_nav2)]
     )
-    ld.add_action(nav2_actions)
+    ld.add_action(bridges_and_nav2_actions)
 
     return ld
 

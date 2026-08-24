@@ -143,6 +143,23 @@ def ros_bridge_callbacks():
 def zenoh_callbacks():
     """Set up Zenoh monitor callbacks."""
 
+    def on_robot_discovered(robot_id: str):
+        """Handle robot discovery from Zenoh."""
+        # Create a RobotState for this robot if it doesn't exist
+        if robot_id not in ros_bridge.robots:
+            ros_bridge.robots[robot_id] = RobotState(
+                id=robot_id,
+                namespace=f'/{robot_id}',
+                pose=Pose(0.0, 0.0, 0.0),
+                velocity=Velocity(),
+                status=RobotStatus.IDLE,
+                coordination_status=CoordinationStatus.ACTIVE,
+            )
+            logger.info(f"Created robot state for discovered robot: {robot_id}")
+
+            # Subscribe to Zenoh topics for this robot
+            zenoh_monitor.subscribe_to_robots([robot_id])
+
     async def on_coordination_event(event: CoordinationEvent):
         # Log and broadcast coordination events
         event_log.append({
@@ -173,6 +190,7 @@ def zenoh_callbacks():
         except Exception as e:
             logger.debug(f"Error creating broadcast task: {e}")
 
+    zenoh_monitor.on_robot_discovered = on_robot_discovered
     zenoh_monitor.on_coordination_event = on_coordination_event_sync
 
 

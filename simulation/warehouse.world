@@ -266,9 +266,37 @@
             <diffuse>0.2 0.2 0.9 1</diffuse>
           </material>
         </visual>
+        <!-- LiDAR sensor -->
+        <sensor name="lidar" type="ray">
+          <pose>0 0 0.1 0 0 0</pose>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>360</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.14159</min_angle>
+                <max_angle>3.14159</max_angle>
+              </horizontal>
+            </scan>
+            <range>
+              <min>0.1</min>
+              <max>10.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </ray>
+          <always_on>true</always_on>
+          <update_rate>10</update_rate>
+          <visualize>false</visualize>
+        </sensor>
       </link>
       <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
         <publish_link_pose>true</publish_link_pose>
+      </plugin>
+      <!-- Odometry plugin publishes /model/amr_0/odometry -->
+      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="odometry_publisher">
+        <odom_topic>odometry</odom_topic>
+        <odom_frame>odom</odom_frame>
+        <robot_base_frame>base_link</robot_base_frame>
       </plugin>
     </model>
 
@@ -307,9 +335,37 @@
             <diffuse>0.2 0.9 0.2 1</diffuse>
           </material>
         </visual>
+        <!-- LiDAR sensor -->
+        <sensor name="lidar" type="ray">
+          <pose>0 0 0.1 0 0 0</pose>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>360</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.14159</min_angle>
+                <max_angle>3.14159</max_angle>
+              </horizontal>
+            </scan>
+            <range>
+              <min>0.1</min>
+              <max>10.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </ray>
+          <always_on>true</always_on>
+          <update_rate>10</update_rate>
+          <visualize>false</visualize>
+        </sensor>
       </link>
       <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
         <publish_link_pose>true</publish_link_pose>
+      </plugin>
+      <!-- Odometry plugin publishes /model/amr_1/odometry -->
+      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="odometry_publisher">
+        <odom_topic>odometry</odom_topic>
+        <odom_frame>odom</odom_frame>
+        <robot_base_frame>base_link</robot_base_frame>
       </plugin>
     </model>
 
@@ -348,9 +404,37 @@
             <diffuse>0.9 0.2 0.2 1</diffuse>
           </material>
         </visual>
+        <!-- LiDAR sensor -->
+        <sensor name="lidar" type="ray">
+          <pose>0 0 0.1 0 0 0</pose>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>360</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.14159</min_angle>
+                <max_angle>3.14159</max_angle>
+              </horizontal>
+            </scan>
+            <range>
+              <min>0.1</min>
+              <max>10.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </ray>
+          <always_on>true</always_on>
+          <update_rate>10</update_rate>
+          <visualize>false</visualize>
+        </sensor>
       </link>
       <plugin filename="libignition-gazebo-pose-publisher-system.so" name="pose_publisher">
         <publish_link_pose>true</publish_link_pose>
+      </plugin>
+      <!-- Odometry plugin publishes /model/amr_2/odometry -->
+      <plugin filename="libignition-gazebo-odometry-publisher-system.so" name="odometry_publisher">
+        <odom_topic>odometry</odom_topic>
+        <odom_frame>odom</odom_frame>
+        <robot_base_frame>base_link</robot_base_frame>
       </plugin>
     </model>
 

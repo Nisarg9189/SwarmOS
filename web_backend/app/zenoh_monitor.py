@@ -29,6 +29,7 @@ class ZenohMonitor:
         self.session = None
         self.subscriptions: Dict[str, Any] = {}
         self.initialized = False
+        self.discovered_robots: set = set()  # Track discovered robot IDs
 
         # Cached state (always initialize these)
         self.robot_state: Dict[str, Dict[str, Any]] = {}  # robot_id -> latest state msg
@@ -39,6 +40,7 @@ class ZenohMonitor:
         self.on_state_updated: Optional[Callable] = None
         self.on_intent_updated: Optional[Callable] = None
         self.on_coordination_event: Optional[Callable] = None
+        self.on_robot_discovered: Optional[Callable] = None  # Called when a robot is discovered
 
         if not ZENOH_AVAILABLE:
             logger.warning("Zenoh not available - coordination monitoring disabled")
@@ -56,11 +58,57 @@ class ZenohMonitor:
             self.session = zenoh.open(conf)
             self.initialized = True
             logger.info("Connected to Zenoh router")
+
+            # Auto-discover robots by subscribing to agent status wildcard
+            self._subscribe_to_agent_discovery()
+
             return True
         except Exception as e:
             logger.error(f"Failed to connect to Zenoh: {e}")
             self.initialized = False
             return False
+
+    def _subscribe_to_agent_discovery(self) -> None:
+        """Subscribe to agent status messages to discover robots."""
+        if not self.initialized or not self.session:
+            return
+
+        try:
+            key = "swarm/agent/+/status"
+
+            def on_agent_status(sample):
+                try:
+                    # Extract robot_id from topic path: swarm/agent/{robot_id}/status
+                    parts = sample.key_expr.split('/')
+                    if len(parts) >= 3:
+                        robot_id = parts[2]  # parts: ['swarm', 'agent', 'amr_0', 'status']
+
+                        # Parse message
+                        msg = json.loads(sample.payload.to_bytes().decode('utf-8'))
+
+                        # Store state
+                        self.robot_state[robot_id] = msg
+
+                        # Notify about discovery if new
+                        if robot_id not in self.discovered_robots:
+                            self.discovered_robots.add(robot_id)
+                            if self.on_robot_discovered:
+                                self.on_robot_discovered(robot_id)
+                            logger.info(f"Discovered robot: {robot_id}")
+
+                        # Emit state update callback
+                        if self.on_state_updated:
+                            self.on_state_updated(robot_id, msg)
+
+                except Exception as e:
+                    logger.debug(f"Error parsing agent status message: {e}")
+
+            sub = self.session.declare_subscriber(key, on_agent_status)
+            self.subscriptions["agent_discovery"] = sub
+            logger.info(f"Subscribed to agent discovery: {key}")
+
+        except Exception as e:
+            logger.error(f"Failed to subscribe to agent discovery: {e}")
 
     def subscribe_to_robots(self, robot_ids: List[str]) -> None:
         """Subscribe to state/intent for a set of robots."""
@@ -69,10 +117,76 @@ class ZenohMonitor:
             return
 
         for robot_id in robot_ids:
+            # Subscribe to agent-published topics (new pattern)
+            self._subscribe_to_agent_intent(robot_id)
+            self._subscribe_to_agent_task(robot_id)
+
+            # Also subscribe to legacy warehouse coordinator topics if they exist
             self._subscribe_to_robot_state(robot_id)
-            self._subscribe_to_robot_intent(robot_id)
-            self._subscribe_to_robot_task(robot_id)
             self._subscribe_to_robot_negotiate(robot_id)
+
+    def _subscribe_to_agent_intent(self, robot_id: str) -> None:
+        """Subscribe to a robot's intent (planned route) via agent topic."""
+        if not self.initialized or not self.session:
+            return
+
+        try:
+            # Subscribe to agent's intent topic (swarm/agent/{robot_id}/intent)
+            key = f"swarm/agent/{robot_id}/intent"
+
+            def on_intent(sample):
+                try:
+                    msg = json.loads(sample.payload.to_bytes().decode('utf-8'))
+                    self.robot_intent[robot_id] = msg
+
+                    if self.on_intent_updated:
+                        self.on_intent_updated(robot_id, msg)
+
+                    # Emit coordination event
+                    if self.on_coordination_event:
+                        event = CoordinationEvent(
+                            timestamp=time.time(),
+                            robot_id=robot_id,
+                            event_type="route_updated",
+                            details={
+                                "path_length": len(msg.get("path", [])) if isinstance(msg.get("path"), list) else 0,
+                                "next_waypoint": msg.get("next_waypoint"),
+                            }
+                        )
+                        self.on_coordination_event(event)
+
+                except Exception as e:
+                    logger.debug(f"Error parsing agent intent message from {robot_id}: {e}")
+
+            sub = self.session.declare_subscriber(key, on_intent)
+            self.subscriptions[f"{robot_id}/agent_intent"] = sub
+            logger.debug(f"Subscribed to agent intent: {key}")
+
+        except Exception as e:
+            logger.error(f"Failed to subscribe to agent intent for {robot_id}: {e}")
+
+    def _subscribe_to_agent_task(self, robot_id: str) -> None:
+        """Subscribe to a robot's task messages via agent topic."""
+        if not self.initialized or not self.session:
+            return
+
+        try:
+            key = f"swarm/agent/{robot_id}/task_status"
+
+            def on_task(sample):
+                try:
+                    msg = json.loads(sample.payload.to_bytes().decode('utf-8'))
+                    self.robot_task[robot_id] = msg
+
+                except Exception as e:
+                    logger.debug(f"Error parsing agent task message from {robot_id}: {e}")
+
+            sub = self.session.declare_subscriber(key, on_task)
+            self.subscriptions[f"{robot_id}/agent_task"] = sub
+            logger.debug(f"Subscribed to agent task: {key}")
+
+        except Exception as e:
+            logger.error(f"Failed to subscribe to agent task for {robot_id}: {e}")
 
     def _subscribe_to_robot_state(self, robot_id: str) -> None:
         """Subscribe to a robot's state messages."""

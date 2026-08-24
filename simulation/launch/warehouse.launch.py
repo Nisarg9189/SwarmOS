@@ -76,7 +76,25 @@ def start_nav2(context, *args, **kwargs):
     for i in range(spawn_amrs_count):
         robot_id = f"amr_{i}"
 
-        # Start Nav2 bringup for this robot
+        # Generate robot-specific nav2_params with absolute frame IDs
+        # This works around namespace resolution issues
+        nav2_params_file = os.path.join(simulation_dir, f'nav2_params_{robot_id}.yaml')
+
+        # Read the base nav2_params and replace relative frame IDs with absolute ones
+        with open(os.path.join(simulation_dir, 'nav2_params.yaml'), 'r') as f:
+            nav2_params = f.read()
+
+        # Replace relative frame IDs with absolute ones that include the robot namespace
+        nav2_params = nav2_params.replace('odom_frame_id: "odom"', f'odom_frame_id: "{robot_id}/odom"')
+        nav2_params = nav2_params.replace('global_frame: odom', f'global_frame: {robot_id}/odom')
+        nav2_params = nav2_params.replace('robot_base_frame: base_link', f'robot_base_frame: {robot_id}/base_link')
+        nav2_params = nav2_params.replace('odom_topic: odom', f'odom_topic: /{robot_id}/odom')
+
+        # Write the robot-specific params file
+        with open(nav2_params_file, 'w') as f:
+            f.write(nav2_params)
+
+        # Start Nav2 bringup for this robot with the robot-specific params
         nav2_cmd = ExecuteProcess(
             cmd=[
                 'bash', '-c',
@@ -84,6 +102,7 @@ def start_nav2(context, *args, **kwargs):
                 f'ros2 launch nav2_bringup bringup_launch.py ' +
                 f'namespace:={robot_id} ' +
                 f'use_namespace:=true ' +
+                f'params_file:={nav2_params_file} ' +
                 f'map:={simulation_dir}/warehouse_map.yaml ' +
                 f'use_sim_time:=true'
             ],

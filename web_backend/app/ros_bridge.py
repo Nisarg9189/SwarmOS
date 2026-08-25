@@ -36,6 +36,9 @@ logger = logging.getLogger(__name__)
 class RoSBridge:
     """Bridge between FastAPI and ROS 2."""
 
+    # Known robot IDs that should be subscribed to at startup
+    KNOWN_ROBOTS = ["amr_0", "amr_1", "amr_2"]
+
     def __init__(self):
         """Initialize ROS 2 bridge."""
         # Always initialize these regardless of ROS availability
@@ -166,6 +169,11 @@ class RoSBridge:
             # Subscribe to global topics
             self._subscribe_to_clock()
             self._subscribe_to_map()
+
+            # Bootstrap subscriptions to known robots
+            for robot_id in self.KNOWN_ROBOTS:
+                self.subscribe_to_robot(robot_id)
+
             logger.info("Connected to ROS 2 global topics")
             return True
         except Exception as e:

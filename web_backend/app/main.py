@@ -397,7 +397,7 @@ async def start_scenario(scenario_name: str) -> Dict:
 
     try:
         # Create and start executor
-        executor = ScenarioExecutor(ros_bridge.node, scenario.__dict__)
+        executor = ScenarioExecutor(ros_bridge.node, scenario.__dict__, zenoh_monitor=zenoh_monitor)
         await executor.start()
         current_scenario_executor = executor
 

@@ -28,13 +28,14 @@ class ScenarioExecutor:
     INITIALPOSE_DELAY_S = 3.0
     GOAL_DELAY_S = 6.0
 
-    def __init__(self, node: Node, scenario: Dict[str, Any]):
+    def __init__(self, node: Node, scenario: Dict[str, Any], zenoh_monitor: Optional[Any] = None):
         """Initialize executor with ROS node and scenario."""
         if not ROS_AVAILABLE:
             raise RuntimeError("ROS 2 not available")
 
         self.node = node
         self.scenario = scenario
+        self.zenoh_monitor = zenoh_monitor
         self.is_running = False
         self.start_time = 0.0
         self.tasks: List[asyncio.Task] = []
@@ -145,12 +146,15 @@ class ScenarioExecutor:
         for robot in self.scenario.get('robots', []):
             robot_id = robot['id']
             goal = robot.get('goal', {})
+            goal_x = float(goal.get('x', 0.0))
+            goal_y = float(goal.get('y', 0.0))
+            task_priority = int(robot.get('task_priority', 50))
 
             msg = PoseStamped()
             msg.header.frame_id = 'map'
             msg.header.stamp = self.node.get_clock().now().to_msg()
-            msg.pose.position.x = float(goal.get('x', 0.0))
-            msg.pose.position.y = float(goal.get('y', 0.0))
+            msg.pose.position.x = goal_x
+            msg.pose.position.y = goal_y
             msg.pose.position.z = 0.0
             msg.pose.orientation.x = 0.0
             msg.pose.orientation.y = 0.0
@@ -158,7 +162,16 @@ class ScenarioExecutor:
             msg.pose.orientation.w = 1.0  # Identity orientation
 
             self.goal_pubs[robot_id].publish(msg)
-            logger.info(f"Published goal for {robot_id}: ({goal.get('x')}, {goal.get('y')})")
+
+            # Real navigation input: agent.py's control loop reads goals from
+            # Zenoh swarm/task/events, not from this ROS2 topic.
+            if self.zenoh_monitor is not None:
+                self.zenoh_monitor.dispatch_task(
+                    robot_id, goal_x, goal_y, priority=task_priority,
+                    task_id=f"scenario_{self.scenario.get('name', 'unknown')}_{robot_id}"
+                )
+
+            logger.info(f"Published goal for {robot_id}: ({goal_x}, {goal_y})")
 
     def _execute_event(self, event: Dict[str, Any]):
         """Execute a scenario event."""

@@ -74,6 +74,8 @@ class CoordinationAgent(Node):
         self.blocked_since_ms: Optional[int] = None
         self.peer_states: Dict[str, dict] = {}
         self.last_position: Optional[np.ndarray] = None
+        self.active_goal: Optional[np.ndarray] = None
+        self.active_task_id: Optional[str] = None
 
         # ROS 2 setup
         self.tf_buffer = Buffer()
@@ -81,7 +83,7 @@ class CoordinationAgent(Node):
 
         self.goal_pub = self.create_publisher(
             PoseStamped,
-            '/move_base_simple/goal',
+            f'/{robot_id}/goal_pose',
             10
         )
         self.cmd_vel_pub = self.create_publisher(
@@ -141,7 +143,7 @@ class CoordinationAgent(Node):
         try:
             tf = self.tf_buffer.lookup_transform(
                 'map',
-                f'base_link_{self.robot_id}',
+                f'{self.robot_id}/base_link',
                 rclpy.time.Time()
             )
             x = tf.transform.translation.x
@@ -155,7 +157,7 @@ class CoordinationAgent(Node):
 
         # Default values
         velocity = np.array([0.0, 0.0, 0.0])
-        goal = None
+        goal = self.active_goal  # keep working toward the currently-claimed task, if any
         obstacles = []
         battery_pct = 100.0
 
@@ -205,6 +207,16 @@ class CoordinationAgent(Node):
                                 task.get('goal', {}).get('x', 0),
                                 task.get('goal', {}).get('y', 0)
                             ])
+                            self.active_goal = goal
+                            self.active_task_id = task_id
+                            try:
+                                self.task_status_pub.put(json.dumps({
+                                    'agent_id': self.robot_id,
+                                    'task_id': task_id,
+                                    'status': 'claimed',
+                                }))
+                            except Exception:
+                                pass
                 except (json.JSONDecodeError, KeyError):
                     pass
         except Exception:
@@ -218,7 +230,7 @@ class CoordinationAgent(Node):
             obstacles=obstacles,
             battery_pct=battery_pct,
             peer_states=self.peer_states,
-            task_id=self.current_plan.task_id if self.current_plan else None
+            task_id=self.active_task_id
         )
 
     def plan(self, sensor_data: SensorData) -> Plan:
@@ -242,6 +254,18 @@ class CoordinationAgent(Node):
                 reason = "moving_to_task"
             else:
                 reason = "goal_reached"
+                if self.active_task_id is not None:
+                    try:
+                        self.task_status_pub.put(json.dumps({
+                            'agent_id': self.robot_id,
+                            'task_id': self.active_task_id,
+                            'status': 'completed',
+                            'duration_ms': int(time.time() * 1000) - sensor_data.timestamp_ms,
+                        }))
+                    except Exception:
+                        pass
+                self.active_goal = None
+                self.active_task_id = None
 
         # Check for deadlock
         if self.is_blocked(sensor_data):
@@ -382,8 +406,12 @@ class CoordinationAgent(Node):
 
     def _can_claim_task(self, task: dict) -> bool:
         """Decide whether to claim a task."""
-        # Simple: claim if we're not already working on a task
-        return self.current_plan is None or self.current_plan.task_id is None
+        if self.active_task_id is not None:
+            return False
+        target_robot = task.get('robot_id')
+        if target_robot is not None:
+            return target_robot == self.robot_id
+        return True
 
     def run_control_loop(self) -> None:
         """Main control loop running in main thread."""

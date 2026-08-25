@@ -89,6 +89,7 @@ def start_nav2(context, *args, **kwargs):
         nav2_params = nav2_params.replace('global_frame: odom', f'global_frame: {robot_id}/odom')
         nav2_params = nav2_params.replace('robot_base_frame: base_link', f'robot_base_frame: {robot_id}/base_link')
         nav2_params = nav2_params.replace('odom_topic: odom', f'odom_topic: /{robot_id}/odom')
+        nav2_params = nav2_params.replace('base_frame_id: "base_link"', f'base_frame_id: "{robot_id}/base_link"')
 
         # Write the robot-specific params file
         with open(nav2_params_file, 'w') as f:

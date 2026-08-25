@@ -395,6 +395,39 @@ class ZenohMonitor:
                 except Exception as e:
                     logger.debug(f"Error unsubscribing from {key}: {e}")
 
+    def dispatch_task(self, robot_id: str, x: float, y: float, priority: int = 50, task_id: Optional[str] = None) -> Optional[str]:
+        """Dispatch a navigation task to a specific robot via Zenoh (swarm/task/events)."""
+        if not self.initialized or not self.session:
+            logger.warning(f"Cannot dispatch task to {robot_id}: Zenoh not connected")
+            return None
+
+        if task_id is None:
+            task_id = f"task_{int(time.time() * 1000)}_{robot_id}"
+
+        try:
+            if not hasattr(self, '_task_events_pub') or self._task_events_pub is None:
+                self._task_events_pub = self.session.declare_publisher('swarm/task/events')
+
+            payload = {
+                'timestamp_ms': int(time.time() * 1000),
+                'event': 'task_dispatched',
+                'task_id': task_id,
+                'task': {
+                    'task_id': task_id,
+                    'robot_id': robot_id,
+                    'goal': {'x': x, 'y': y},
+                    'priority': priority,
+                    'deadline_ms': 60000,
+                    'created_ms': int(time.time() * 1000),
+                },
+            }
+            self._task_events_pub.put(json.dumps(payload))
+            logger.info(f"Dispatched task {task_id} to {robot_id}: goal=({x}, {y})")
+            return task_id
+        except Exception as e:
+            logger.error(f"Failed to dispatch task to {robot_id}: {e}")
+            return None
+
     def shutdown(self) -> None:
         """Clean up Zenoh resources."""
         for sub in self.subscriptions.values():

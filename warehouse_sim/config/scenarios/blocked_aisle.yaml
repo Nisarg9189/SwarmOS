@@ -1,0 +1,53 @@
+name: blocked_aisle
+description: >
+  amr_0's only straight-line route (the aisle between shelf_row_1 and
+  shelf_row_2) gets fully barricaded by three barrier_obstacle models
+  spawned side by side mid-run (t=6s), spanning the aisle's ~3.3m width so
+  there is no gap to squeeze through -- unlike the choke chicane in
+  overlapping_paths.yaml, this is a hard block. amr_0 must detect the
+  now-unreachable path and reroute via a different aisle/bay entirely.
+  amr_1 and amr_2 run independent, unaffected baselines in other
+  bays so a partial run failure is easy to isolate to the rerouting logic.
+  Barricade is removed at t=60s to also exercise re-optimizing back onto
+  the shorter route once it reopens.
+
+robots:
+  - id: amr_0
+    spawn: {x: -4.3, y: -6.3, yaw: 1.5708}
+    goal: {x: -4.3, y: 6.3}
+    task_priority: 1
+  - id: amr_1
+    spawn: {x: -8.0, y: -6.3, yaw: 1.5708}
+    goal: {x: -8.0, y: 6.3}
+    task_priority: 0
+  - id: amr_2
+    spawn: {x: 4.0, y: -6.3, yaw: 1.5708}
+    goal: {x: 4.0, y: 6.3}
+    task_priority: 0
+
+obstacles: []
+events:
+  - type: spawn_obstacle
+    at_time: 6.0
+    name: barricade_1
+    model: barrier_obstacle
+    pose: {x: -5.4, y: 2.0, z: 0.5, yaw: 0.0}
+  - type: spawn_obstacle
+    at_time: 6.0
+    name: barricade_2
+    model: barrier_obstacle
+    pose: {x: -4.2, y: 2.0, z: 0.5, yaw: 0.0}
+  - type: spawn_obstacle
+    at_time: 6.0
+    name: barricade_3
+    model: barrier_obstacle
+    pose: {x: -3.0, y: 2.0, z: 0.5, yaw: 0.0}
+  - type: remove_obstacle
+    at_time: 60.0
+    name: barricade_1
+  - type: remove_obstacle
+    at_time: 60.0
+    name: barricade_2
+  - type: remove_obstacle
+    at_time: 60.0
+    name: barricade_3

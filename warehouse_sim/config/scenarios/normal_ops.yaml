@@ -1,0 +1,23 @@
+name: normal_ops
+description: >
+  Sanity baseline. Three robots each travel a straight north-south run in
+  their own bay/aisle (west bay, center aisle, east bay) with no shared
+  segments and no faults. Confirms the stack (Gazebo + Nav2 + coordination
+  agent) brings up cleanly and robots complete tasks with zero contention.
+
+robots:
+  - id: amr_0
+    spawn: {x: -8.0, y: -6.3, yaw: 1.5708}
+    goal: {x: -8.0, y: 6.3}
+    task_priority: 0
+  - id: amr_1
+    spawn: {x: 0.0, y: -6.3, yaw: 1.5708}
+    goal: {x: 0.0, y: 6.3}
+    task_priority: 0
+  - id: amr_2
+    spawn: {x: 8.0, y: -6.3, yaw: 1.5708}
+    goal: {x: 8.0, y: 6.3}
+    task_priority: 0
+
+obstacles: []
+events: []

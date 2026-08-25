@@ -1,0 +1,32 @@
+name: robot_failure
+description: >
+  amr_0 suffers a hard failure (controller_server + coordination_agent_node
+  both SIGSTOPped -- see failure_injector.py) 8s in, partway down the open
+  center aisle, and stays down for 25s before recovering. It goes fully
+  silent to peers (no more RobotState/IntentPath), exercising the
+  lease_expiry peer-failure path in docs/protocol_assumptions.md. amr_1 is
+  headed straight at it from the opposite end of the same aisle and must
+  treat the stalled robot as a static obstacle once its lease expires, then
+  handle it re-engaging mid-negotiation on recovery. amr_2 runs an
+  unaffected baseline in a different aisle.
+
+robots:
+  - id: amr_0
+    spawn: {x: 0.0, y: -6.3, yaw: 1.5708}
+    goal: {x: 0.0, y: 6.3}
+    task_priority: 1
+  - id: amr_1
+    spawn: {x: 0.0, y: 6.3, yaw: -1.5708}
+    goal: {x: 0.0, y: -6.3}
+    task_priority: 1
+  - id: amr_2
+    spawn: {x: 4.0, y: -6.3, yaw: 1.5708}
+    goal: {x: 4.0, y: 6.3}
+    task_priority: 0
+
+obstacles: []
+events:
+  - type: robot_failure
+    at_time: 8.0
+    robot_id: amr_0
+    duration: 25.0

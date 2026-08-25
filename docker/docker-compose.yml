@@ -197,6 +197,7 @@ services:
       - ../amr_agents:/workspace/amr_agents:ro
       - ../comms:/workspace/comms:ro
       - ../simulation:/workspace/simulation:ro
+      - ../warehouse_sim:/workspace/warehouse_sim:ro
     networks:
       - swarmos
     command: bash -c "

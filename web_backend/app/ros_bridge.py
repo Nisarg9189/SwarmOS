@@ -390,6 +390,7 @@ class RoSBridge:
     def load_scenario(self, scenario_name: str) -> Optional[Scenario]:
         """Load scenario configuration from YAML."""
         candidates = [
+            Path(f"/workspace/warehouse_sim/config/scenarios/{scenario_name}.yaml"),
             Path(f"/workspace/install/warehouse_sim/share/warehouse_sim/config/scenarios/{scenario_name}.yaml"),
             Path(f"warehouse_sim/config/scenarios/{scenario_name}.yaml"),
             Path(f"/opt/ros_ws/src/warehouse_sim/config/scenarios/{scenario_name}.yaml"),

@@ -1,0 +1,33 @@
+name: network_disruption
+description: >
+  amr_0 and amr_1 approach the same single-lane choke chicane (between
+  choke_pillar_a and choke_pillar_b) head-on, as in overlapping_paths.yaml,
+  but 6s in amr_0 loses coordination comms for 15s (network_disruptor.py
+  SIGSTOPs only its coordination_agent_node, leaving Nav2 running -- it
+  keeps physically moving toward the choke point but stops
+  publishing/receiving RobotState/IntentPath/yield traffic). Exercises the
+  protocol's network-partition-resilience path: amr_1 must reason about a
+  peer that is still physically present and moving but no longer
+  negotiating, and both must reconcile cleanly once comms are restored.
+  amr_2 runs an unaffected baseline in a different aisle.
+
+robots:
+  - id: amr_0
+    spawn: {x: -4.3, y: -6.3, yaw: 1.5708}
+    goal: {x: -4.3, y: 6.3}
+    task_priority: 1
+  - id: amr_1
+    spawn: {x: -4.3, y: 6.3, yaw: -1.5708}
+    goal: {x: -4.3, y: -6.3}
+    task_priority: 1
+  - id: amr_2
+    spawn: {x: 4.0, y: -6.3, yaw: 1.5708}
+    goal: {x: 4.0, y: 6.3}
+    task_priority: 0
+
+obstacles: []
+events:
+  - type: network_disruption
+    at_time: 6.0
+    robot_id: amr_0
+    duration: 15.0

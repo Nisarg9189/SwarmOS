@@ -1,0 +1,26 @@
+name: overlapping_paths
+description: >
+  Two robots run head-on through the same single-lane choke point (the
+  chicane between choke_pillar_a and choke_pillar_b in the aisle between
+  shelf_row_1 and shelf_row_2 -- see worlds/warehouse.sdf) while a third
+  crosses their shared corridor's mouth perpendicularly along the south
+  cross-aisle. Stresses symmetric head-on right-of-way negotiation plus a
+  perpendicular conflict at the same time, with no physical blockage or
+  fault -- pure path contention.
+
+robots:
+  - id: amr_0
+    spawn: {x: -4.3, y: -6.3, yaw: 1.5708}
+    goal: {x: -4.3, y: 6.3}
+    task_priority: 1
+  - id: amr_1
+    spawn: {x: -4.3, y: 6.3, yaw: -1.5708}
+    goal: {x: -4.3, y: -6.3}
+    task_priority: 1
+  - id: amr_2
+    spawn: {x: -8.5, y: -6.3, yaw: 0.0}
+    goal: {x: 8.5, y: -6.3}
+    task_priority: 0
+
+obstacles: []
+events: []

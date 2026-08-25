@@ -1,0 +1,70 @@
+# Waypoint topology for the frontend's warehouse map visualization.
+# Not used by Nav2 (which plans via its own costmap independently) -
+# this is purely for drawing aisle lines/waypoints in the UI.
+# Grid roughly matches the real warehouse.world extent (walls at +/-20m)
+# with a safe margin, and n_c sits at the same point amr_1 spawns.
+nodes:
+  - id: n_sw
+    x: -12.0
+    y: -12.0
+  - id: n_s
+    x: 0.0
+    y: -12.0
+  - id: n_se
+    x: 12.0
+    y: -12.0
+  - id: n_w
+    x: -12.0
+    y: 0.0
+  - id: n_c
+    x: 0.0
+    y: 0.0
+  - id: n_e
+    x: 12.0
+    y: 0.0
+  - id: n_nw
+    x: -12.0
+    y: 12.0
+  - id: n_n
+    x: 0.0
+    y: 12.0
+  - id: n_ne
+    x: 12.0
+    y: 12.0
+edges:
+  - from: n_sw
+    to: n_s
+    segment_id: seg_bottom_west
+  - from: n_s
+    to: n_se
+    segment_id: seg_bottom_east
+  - from: n_w
+    to: n_c
+    segment_id: seg_mid_west
+  - from: n_c
+    to: n_e
+    segment_id: seg_mid_east
+  - from: n_nw
+    to: n_n
+    segment_id: seg_top_west
+  - from: n_n
+    to: n_ne
+    segment_id: seg_top_east
+  - from: n_sw
+    to: n_w
+    segment_id: seg_left_south
+  - from: n_w
+    to: n_nw
+    segment_id: seg_left_north
+  - from: n_s
+    to: n_c
+    segment_id: seg_center_south
+  - from: n_c
+    to: n_n
+    segment_id: seg_center_north
+  - from: n_se
+    to: n_e
+    segment_id: seg_right_south
+  - from: n_e
+    to: n_ne
+    segment_id: seg_right_north

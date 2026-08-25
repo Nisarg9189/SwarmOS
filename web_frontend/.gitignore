@@ -25,6 +25,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Source lib (not Python lib/ — track this directory)
+!lib/
+
 # IDE
 .vscode
 .idea

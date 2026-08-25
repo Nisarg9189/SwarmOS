@@ -205,7 +205,7 @@ async def lifespan(app: FastAPI):
     ros_connected = ros_bridge.connect()
     if ros_connected:
         # Load warehouse graph
-        if not ros_bridge.load_warehouse_graph():
+        if not ros_bridge.load_warehouse_graph('/workspace/simulation/config/warehouse_graph.yaml'):
             logger.warning("Failed to load warehouse graph from ROS 2")
         ros_bridge_callbacks()
     else:
@@ -445,7 +445,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Receive ping/pong or close message
             data = await websocket.receive_text()
             if data == "ping":
-                await websocket.send_text("pong")
+                await websocket.send_json({"type": "pong"})
     except Exception as e:
         logger.debug(f"WebSocket error: {e}")
     finally:

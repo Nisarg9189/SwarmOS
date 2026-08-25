@@ -196,6 +196,7 @@ services:
       - ../web_backend:/workspace/web_backend:ro
       - ../amr_agents:/workspace/amr_agents:ro
       - ../comms:/workspace/comms:ro
+      - ../simulation:/workspace/simulation:ro
     networks:
       - swarmos
     command: bash -c "

@@ -183,11 +183,22 @@ export function WarehouseVisualization({ onRobotClick }: VisualizationProps) {
     setIsDragging(false)
   }
 
-  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault()
-    const delta = e.deltaY > 0 ? 0.9 : 1.1
-    setZoom(prev => Math.max(0.5, Math.min(3, prev * delta)))
-  }
+  // Attached via a native (non-passive) listener below, not React's onWheel,
+  // because React attaches wheel/touch listeners as passive by default, which
+  // silently ignores preventDefault() and spams the console with warnings.
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const wheelHandler = (e: WheelEvent) => {
+      e.preventDefault()
+      const delta = e.deltaY > 0 ? 0.9 : 1.1
+      setZoom(prev => Math.max(0.5, Math.min(3, prev * delta)))
+    }
+
+    canvas.addEventListener('wheel', wheelHandler, { passive: false })
+    return () => canvas.removeEventListener('wheel', wheelHandler)
+  }, [])
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current?.getBoundingClientRect()
@@ -226,7 +237,6 @@ export function WarehouseVisualization({ onRobotClick }: VisualizationProps) {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
           onClick={handleCanvasClick}
         />
         <div className="text-sm text-slate-400 flex justify-between px-2">
